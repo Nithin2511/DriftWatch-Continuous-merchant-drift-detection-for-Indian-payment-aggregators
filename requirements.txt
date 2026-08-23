@@ -1,0 +1,6 @@
+# DriftWatch pipeline dependencies.
+# The Gemini integration in driftwatch/llm.py uses urllib from the standard library,
+# so no HTTP client is needed here.
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0

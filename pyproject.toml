@@ -1,0 +1,25 @@
+[project]
+name = "driftwatch"
+version = "1.0.0"
+description = "Continuous merchant-drift detection for Indian payment aggregators, graded on lead time bought."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "pyarrow>=14.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["driftwatch"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

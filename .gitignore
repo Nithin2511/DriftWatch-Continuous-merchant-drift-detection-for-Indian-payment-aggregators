@@ -1,0 +1,29 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+/build/
+/dist/
+.venv/
+venv/
+.env
+.env.local
+
+# --- Generated pipeline artifacts (root-anchored: `data/` unanchored would also
+#     swallow frontend/src/data/, which IS committed) ---
+/data/
+/data_verify/
+/out/
+/out_verify/
+
+# --- Frontend ---
+frontend/node_modules/
+frontend/dist/
+
+# --- Tooling / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
