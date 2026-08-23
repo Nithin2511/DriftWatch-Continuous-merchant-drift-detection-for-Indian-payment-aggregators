@@ -9,6 +9,12 @@
 
 > Razorpay AI Buildathon — Track 02 (AI Risk Manager)
 
+### ▶ [Live dashboard](https://nithin2511.github.io/DriftWatch-Continuous-merchant-drift-detection-for-Indian-payment-aggregators/)
+
+No install, no key, no backend — the deployed build carries the committed
+evaluation output. Start on **Overview**, then open **Case files (23)**: it lists
+every held-out trigger, including the false positives, labelled as such.
+
 A merchant clears KYC on day 1 and drifts by day 40 — into prohibited categories, into
 processing for an undisclosed third party, or into a bust-out. Two clocks are running,
 badly mismatched:
@@ -54,13 +60,16 @@ decorating the pipeline.
 
 ## Run it
 
+Prefer to just look at it? The dashboard is deployed at **<https://nithin2511.github.io/DriftWatch-Continuous-merchant-drift-detection-for-Indian-payment-aggregators/>**.
+To run the whole thing yourself:
+
 ```bash
 # 1. Pipeline & CLI Demo
 pip install -r requirements.txt   # pandas, numpy, pyarrow
 python run_all.py                # full pipeline, 10-25 min (calibration grid dominates)
 python -m driftwatch.demo        # the CLI demo view
 
-# 2. React dashboard
+# 2. React dashboard  (deployed copy: https://nithin2511.github.io/DriftWatch-Continuous-merchant-drift-detection-for-Indian-payment-aggregators/)
 python export_frontend_data.py   # out/ -> frontend/src/data/*.js (refuses on inconsistency)
 cd frontend
 npm install
