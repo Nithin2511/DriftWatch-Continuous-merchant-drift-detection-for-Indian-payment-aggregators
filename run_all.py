@@ -11,10 +11,94 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 import time
 from pathlib import Path
 
 import pandas as pd
+
+
+# Fields whose values are quoted in README.md / docs/EVALUATION.md and asserted by
+# tests/test_docs_consistency.py. If any of these move, the committed artifact and the
+# documentation both have to move with them.
+_REPORTED_FIELDS = [
+    ("thresholds",), ("variant",), ("fp_budget",),
+    ("development", "caught"), ("development", "n_drifters"), ("development", "catch_rate"),
+    ("development", "median_lead_days"), ("development", "n_false_positives"),
+    ("development", "n_non_drifters"), ("development", "false_positive_rate"),
+    ("held_out", "caught"), ("held_out", "n_drifters"), ("held_out", "catch_rate"),
+    ("held_out", "median_lead_days"), ("held_out", "p25_lead_days"),
+    ("held_out", "p75_lead_days"), ("held_out", "min_lead_days"),
+    ("held_out", "max_lead_days"), ("held_out", "n_false_positives"),
+    ("held_out", "n_non_drifters"), ("held_out", "false_positive_rate"),
+    ("held_out", "n_fp_confounders"), ("held_out", "n_actionable"),
+    ("held_out", "actionable_rate_of_drifters"), ("held_out_by_type",),
+]
+
+
+def _dig(d, path):
+    for key in path:
+        if not isinstance(d, dict) or key not in d:
+            return "<missing>"
+        d = d[key]
+    return d
+
+
+def check_artifact_is_committed(outdir: Path) -> bool:
+    """Compare the freshly written evaluation.json against the copy in git.
+
+    out/evaluation.json is the ONLY generated file under version control. It is committed
+    so CI can run tests/test_docs_consistency.py against it; without it those tests skip
+    and the docs-vs-numbers guard enforces nothing on pull requests.
+
+    That creates the failure mode this function closes: re-run the pipeline, update the
+    docs, forget to re-commit the artifact -- and CI then validates the documentation
+    against a stale file and passes.
+
+    Returns True when this run agrees with what is committed.
+    """
+    fresh_path = outdir / "evaluation.json"
+    if not fresh_path.exists():
+        return True
+    try:
+        shown = subprocess.run(["git", "show", f"HEAD:{outdir.name}/evaluation.json"],
+                               capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return True                     # no git here; nothing to compare against
+    if shown.returncode != 0:
+        return True                     # not committed on this branch yet
+    try:
+        committed = json.loads(shown.stdout)
+    except json.JSONDecodeError:
+        return True
+    fresh = json.loads(fresh_path.read_text(encoding="utf-8"))
+
+    drifted = [(".".join(path), _dig(committed, path), _dig(fresh, path))
+               for path in _REPORTED_FIELDS
+               if _dig(committed, path) != _dig(fresh, path)]
+    if not drifted:
+        return True
+
+    bar = "=" * 78
+    print("\n" + bar)
+    print("ARTIFACT DRIFT: out/evaluation.json differs from the committed copy")
+    print(bar)
+    for field, was, now in drifted:
+        print(f"  {field}")
+        print(f"      committed: {was}")
+        print(f"      this run : {now}")
+    print()
+    print(f"{len(drifted)} reported field(s) changed. out/evaluation.json is committed so CI")
+    print("can check the documentation against it. A stale copy means CI validates the docs")
+    print("against numbers the pipeline no longer produces -- and passes.")
+    print()
+    print("Do all three, or none:")
+    print("  1. update README.md and docs/EVALUATION.md to the new numbers")
+    print("  2. git add out/evaluation.json")
+    print("  3. python -m pytest tests -q")
+    print(bar)
+    return False
 
 
 def main():
@@ -86,6 +170,11 @@ def main():
     write_cases(hits, merchants, txn, res["thresholds"], prov, out / "cases")
 
     print(f"\ndone in {time.time()-t0:.0f}s. run `python -m driftwatch.demo` for the demo view.")
+
+    # The ablation writes to its own directory and is not the artifact CI validates
+    # against, so it is exempt.
+    if not a.ablate_content and not check_artifact_is_committed(out):
+        sys.exit(1)
 
 
 if __name__ == "__main__":

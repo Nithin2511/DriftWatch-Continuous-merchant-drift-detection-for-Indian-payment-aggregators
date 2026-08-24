@@ -14,9 +14,16 @@ venv/
 #     swallow frontend/src/data/, which IS committed) ---
 /data/
 /data_verify/
-/out/
 /out-ablation/
 /out_verify/
+
+# out/ is generated, with one exception. out/evaluation.json is committed so CI can run
+# tests/test_docs_consistency.py against it -- without it those 19 tests skip and the
+# docs-vs-numbers guard is unenforced on pull requests. Note the glob: `/out/` would
+# exclude the directory itself and git cannot re-include a path under an excluded
+# directory, so the contents are excluded and the one file negated.
+/out/*
+!/out/evaluation.json
 
 # --- Frontend ---
 frontend/node_modules/

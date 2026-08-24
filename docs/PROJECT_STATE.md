@@ -193,6 +193,32 @@ are unanchored-glob hazards: the ignore rules are root-anchored (`/data/`) becau
   diagram is a committed SVG (`docs/architecture.svg`), generated with `htmlLabels: false`
   — Mermaid's default `<foreignObject>` labels do not render when an SVG is loaded via
   `<img>`, which is how GitHub embeds it, and the diagram would show no text at all.
+- **The docs-consistency guard was enforced locally but not on PRs.**
+  `tests/test_docs_consistency.py` asserts every number in README.md and
+  docs/EVALUATION.md against `out/evaluation.json`, and skips when that file is absent.
+  `out/` was gitignored, so on CI all 19 skipped — plus one invariant test — and the suite
+  went green having checked nothing. 20 of 39 tests were silently inert on every pull
+  request. A quiet skip reads exactly like a pass.
+
+  **Adding `python run_all.py` to CI is not the fix.** Without `GEMINI_API_KEY` the
+  classifier falls back to the lexicon (51/63 rather than 63/63), which moves
+  `category_mismatch` from 0.1895 to 0.1669 and shifts the development split (20/27 74.1%
+  and 37.5 d lead, against the committed 19/27 70.4% and 34.0 d) plus the per-type leads
+  (43.0/28.0 vs 41.0/27.0). CI would fail on every push. Putting the key in CI secrets
+  would burn daily quota per push and make the build network-dependent.
+
+  **What was done instead:** `out/evaluation.json` alone is committed — `.gitignore` uses
+  `/out/*` with `!/out/evaluation.json`, because `/out/` would exclude the directory and
+  git cannot re-include a path beneath an excluded directory. CI now runs all 39 tests
+  against that artifact. `tests/conftest.py` prints a banner if any consistency test
+  skips, so the same gap cannot reopen quietly. `run_all.py` calls
+  `check_artifact_is_committed()` after every full run and exits non-zero, naming the
+  drifted fields, if the regenerated artifact disagrees with the committed copy — closing
+  the failure mode that committing an artifact creates.
+
+  CI therefore verifies docs-vs-artifact consistency. It does **not** verify that the
+  pipeline reproduces those numbers; that is what running `run_all.py` locally checks.
+
 - **GitHub Pages serves project sites from `/<repo>/`.** `vite.config.js` takes `base` from
   `BASE_PATH`, set by the deploy workflow from the repo name. Without it the page is blank
   and 404s on its own bundle.

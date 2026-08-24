@@ -21,9 +21,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest
 
-      # Invariant tests only. They are fast and need no pipeline output: the
-      # case-file consistency test skips itself when out/ is absent.
-      - name: Invariant tests
+      # Runs the FULL suite: invariants plus docs-consistency.
+      #
+      # CI does NOT run the pipeline. It verifies that README.md and docs/EVALUATION.md
+      # agree with the committed out/evaluation.json -- not that the pipeline reproduces
+      # those numbers. Reproducibility is checked by running run_all.py locally, which
+      # fails loudly if the regenerated artifact drifts from the committed one.
+      #
+      # out/evaluation.json is the one generated file under version control, committed
+      # specifically so these tests have an artifact to assert against. Without it the 19
+      # docs-consistency tests skip and the guard enforces nothing on pull requests --
+      # which is what happened before, silently. tests/conftest.py now prints a banner if
+      # any of them skip.
+      #
+      # Adding `python run_all.py` here would NOT be an improvement: with no
+      # GEMINI_API_KEY the classifier falls back to the lexicon (51/63 vs 63/63), which
+      # shifts category_mismatch and moves the development-split numbers, so the suite
+      # would fail on every push.
+      - name: Tests (invariants + docs consistency)
         run: python -m pytest tests -q
 
   frontend:
