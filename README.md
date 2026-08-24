@@ -51,6 +51,29 @@ FP 8.6% (9/105). Stratified across drift types and confounders. Held-out scores 
 than development — that is small-sample noise, not a result, and
 [docs/EVALUATION.md](docs/EVALUATION.md) says so with the confidence intervals.
 
+### The floor: no content signal
+
+`category_mismatch` reads item-level descriptor text, and **a real PA often does not have
+it** — a UPI record reliably carries amount, timestamp, payer VPA, PSP handle and
+settlement account, but item descriptors exist only if the merchant passes them, and the
+long tail does not. So the result is reported with that family removed as well:
+
+```
+Without the content family (3 families, fully recalibrated):
+Median LEAD TIME BOUGHT        36.0 days    (IQR 22-45)
+Caught before lagging evidence 9/17         (52.9%, 95% CI 31.0-73.8)
+False-positive rate            11.3%        (8/71)
+```
+
+That is the floor this system operates at using **only signals derivable from amount,
+timing and counterparty identifiers**, which every PA has for every transaction.
+`third_party_layering` barely moves (7/7 to 6/7) and `bust_out` not at all (3/5 to 3/5), but
+`prohibited_category` collapses from 4/5 to **0/5** — that threat model is carried entirely
+by content. Reproduce with `python run_all.py --ablate-content`; full tables and the
+per-class reading are in [docs/EVALUATION.md](docs/EVALUATION.md).
+
+---
+
 Descriptor classification ran on **Gemini 3.5 Flash: 63/63 correct (100%), including all
 8 restricted descriptors.** The deterministic fallback lexicon scores 51/63 (81.0%) and
 5/8 restricted, so the LLM is carrying real weight on the content signal rather than
@@ -68,6 +91,7 @@ To run the whole thing yourself:
 pip install -r requirements.txt   # pandas, numpy, pyarrow
 python run_all.py                # full pipeline, 10-25 min (calibration grid dominates)
 python -m driftwatch.demo        # the CLI demo view
+python run_all.py --ablate-content   # no-content ablation -> out-ablation/
 
 # 2. React dashboard  (deployed copy: https://nithin2511.github.io/DriftWatch-Continuous-merchant-drift-detection-for-Indian-payment-aggregators/)
 python export_frontend_data.py   # out/ -> frontend/src/data/*.js (refuses on inconsistency)

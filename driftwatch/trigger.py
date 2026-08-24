@@ -54,34 +54,49 @@ SUSTAIN_DAYS = 5        # Branch B: consecutive observation days required
 
 SIGNALS = ["category_mismatch", "ticket_psi", "velocity_peer_z", "network_overlap"]
 
+#: Signal set with the content family removed. Used by the ablation in evaluate.py to
+#: answer "what does DriftWatch buy when the PA's descriptor field is sparse or opaque?"
+#: The family is REMOVED, not zeroed: Branch A still requires two DISTINCT families, and
+#: the three that remain (distribution, velocity, network) are all derivable from amount,
+#: timing and counterparty identifiers alone.
+SIGNALS_NO_CONTENT = [s for s in SIGNALS if s != "category_mismatch"]
 
-def apply_thresholds(sig: pd.DataFrame, thr: dict[str, float]) -> pd.DataFrame:
+
+def apply_thresholds(sig: pd.DataFrame, thr: dict[str, float],
+                     signals: list[str] | None = None) -> pd.DataFrame:
+    signals = signals or SIGNALS
     out = sig.copy()
     out["_vel"] = np.maximum(out["velocity_peer_z"], 0.0)
-    for s in SIGNALS:
+    for s in signals:
         col = "_vel" if s == "velocity_peer_z" else s
         out[f"cross_{s}"] = (out[col] >= thr[s]).astype(np.int8)
         out[f"extreme_{s}"] = (out[col] >= thr[s] * EXTREME_MULT).astype(np.int8)
     return out
 
 
-def run_triggers(sig: pd.DataFrame, thr: dict[str, float]) -> pd.DataFrame:
+def run_triggers(sig: pd.DataFrame, thr: dict[str, float],
+                 signals: list[str] | None = None) -> pd.DataFrame:
     """Walk each merchant forward in day order; record the FIRST day either branch
-    fires. Once a case is opened the merchant is not re-evaluated."""
-    crossed = apply_thresholds(sig, thr)
+    fires. Once a case is opened the merchant is not re-evaluated.
+
+    `signals` selects which families participate. It defaults to all four; the ablation
+    passes SIGNALS_NO_CONTENT. The rule itself is identical either way.
+    """
+    signals = signals or SIGNALS
+    crossed = apply_thresholds(sig, thr, signals)
     fired = []
 
     for mid, grp in crossed.groupby("merchant_id", sort=False):
         grp = grp.sort_values("day")
         days = grp["day"].to_numpy()
-        last_cross = {s: -10**9 for s in SIGNALS}
-        first_cross: dict[str, int | None] = {s: None for s in SIGNALS}
-        first_cross_value: dict[str, float] = {s: float("nan") for s in SIGNALS}
-        run_len = {s: 0 for s in SIGNALS}
+        last_cross = {s: -10**9 for s in signals}
+        first_cross: dict[str, int | None] = {s: None for s in signals}
+        first_cross_value: dict[str, float] = {s: float("nan") for s in signals}
+        run_len = {s: 0 for s in signals}
         hit = None
 
         for i, t in enumerate(days):
-            for s in SIGNALS:
+            for s in signals:
                 if grp[f"cross_{s}"].iat[i]:
                     last_cross[s] = int(t)
                     if first_cross[s] is None:
@@ -89,7 +104,7 @@ def run_triggers(sig: pd.DataFrame, thr: dict[str, float]) -> pd.DataFrame:
                         first_cross_value[s] = float(grp[s].iat[i])
                 run_len[s] = run_len[s] + 1 if grp[f"extreme_{s}"].iat[i] else 0
 
-            active = [s for s in SIGNALS if t - last_cross[s] < TRIGGER_WINDOW]
+            active = [s for s in signals if t - last_cross[s] < TRIGGER_WINDOW]
             families = {SIGNAL_FAMILY[s] for s in active}
 
             branch = None
@@ -97,7 +112,7 @@ def run_triggers(sig: pd.DataFrame, thr: dict[str, float]) -> pd.DataFrame:
             if len(families) >= MIN_FAMILIES:
                 branch, chosen = "A_corroboration", active
             else:
-                ext = [s for s in SIGNALS if run_len[s] >= SUSTAIN_DAYS]
+                ext = [s for s in signals if run_len[s] >= SUSTAIN_DAYS]
                 if ext:
                     branch, chosen = "B_sustained_extreme", ext
 

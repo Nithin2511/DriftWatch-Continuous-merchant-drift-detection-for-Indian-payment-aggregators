@@ -1,0 +1,96 @@
+{
+  "case_id": "DW-MID0054-D166",
+  "generated_at_utc": "2026-08-23T20:48:31+00:00",
+  "subject_entity": {
+    "merchant_id": "MID0054",
+    "declared_category": "ecommerce",
+    "declared_avg_ticket_inr": 525.92,
+    "declared_monthly_volume": 961,
+    "onboarding_day": 72,
+    "settlement_account": "ACC15089104"
+  },
+  "trigger_day": 166,
+  "days_since_onboarding": 94,
+  "merchant_id": "MID0054",
+  "declared_category": "ecommerce",
+  "grounds_for_review": {
+    "branch": "A_corroboration",
+    "rule": "Branch A (corroboration): >= 2 distinct signal families each crossed threshold within a rolling 14-day window.",
+    "families_fired": [
+      "distribution",
+      "velocity"
+    ]
+  },
+  "signals_fired": [
+    {
+      "signal": "ticket_psi",
+      "family": "distribution",
+      "value": 0.2642,
+      "value_at_trigger_day": 0.2642,
+      "threshold": 0.25,
+      "first_crossed_day": 166,
+      "consecutive_extreme_days": 0,
+      "reading": "Population Stability Index of the trailing ticket-size distribution against this merchant's 30-day post-onboarding baseline. PSI > 0.25 is conventionally read as a significant distributional shift."
+    },
+    {
+      "signal": "velocity_peer_z",
+      "family": "velocity",
+      "value": 2.5286,
+      "value_at_trigger_day": -21.5753,
+      "threshold": 2.5,
+      "first_crossed_day": 145,
+      "consecutive_extreme_days": 0,
+      "reading": "Transaction-volume growth ratio, scored against the same-day cross-sectional distribution across the whole portfolio. Measured peer-relative so that portfolio-wide seasonal surges do not register."
+    }
+  ],
+  "supporting_data": {
+    "baseline_median_ticket_inr": 601.0,
+    "current_median_ticket_inr": 877.91,
+    "ticket_shift_multiple": 1.46,
+    "baseline_daily_txns": 44.4,
+    "current_daily_txns": 105.9,
+    "volume_shift_multiple": 2.38,
+    "current_top_descriptors": [
+      {
+        "descriptor": "wall clock",
+        "n": 127
+      },
+      {
+        "descriptor": "running shoes size 9",
+        "n": 119
+      },
+      {
+        "descriptor": "sunglasses",
+        "n": 117
+      }
+    ],
+    "distinct_payer_vpas_in_window": 724,
+    "refund_rate_in_window": 0.0101
+  },
+  "network_context": {
+    "linked_merchant": null,
+    "shared_settlement_account": false
+  },
+  "recommended_action": "investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed",
+  "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
+  "provenance": {
+    "descriptor_classifier_mode": "gemini",
+    "variant": "no_content_ablation",
+    "signals_used": [
+      "ticket_psi",
+      "velocity_peer_z",
+      "network_overlap"
+    ],
+    "calibration": "development split (60%); held-out untouched until final scoring",
+    "data": "synthetic",
+    "generator_seed": 20260823,
+    "thresholds": {
+      "ticket_psi": 0.25,
+      "velocity_peer_z": 2.5,
+      "network_overlap": 0.2
+    },
+    "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
+    "narrative_mode": "fallback-template"
+  },
+  "narrative": "Merchant MID0054 (declared category: ecommerce) crossed the corroboration threshold on observation day 166, 94 days after onboarding. 2 independent signal families fired inside the review window.\n\nEvidence: ticket_psi = 0.264 against a threshold of 0.250 (first crossed day 166); velocity_peer_z = 2.529 against a threshold of 2.500 (first crossed day 145).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
+}

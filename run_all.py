@@ -23,9 +23,15 @@ def main():
     ap.add_argument("--max-fp", type=float, default=0.10,
                     help="FP-rate budget the calibration must respect on the dev split")
     ap.add_argument("--data", default="data")
-    ap.add_argument("--out", default="out")
+    ap.add_argument("--out", default=None,
+                    help="output dir (default: out, or out-ablation when --ablate-content)")
+    ap.add_argument("--ablate-content", action="store_true",
+                    help="drop the content family (category_mismatch) and recalibrate "
+                         "from scratch. Answers 'what does this buy when the PA has no "
+                         "usable descriptor text?' -- see docs/EVALUATION.md.")
     a = ap.parse_args()
-    data, out = Path(a.data), Path(a.out)
+    data = Path(a.data)
+    out = Path(a.out) if a.out else Path("out-ablation" if a.ablate_content else "out")
     t0 = time.time()
 
     # 1 -- synthetic data
@@ -58,17 +64,22 @@ def main():
 
     # 4 -- calibrate on dev, score held-out once
     from driftwatch.evaluate import main as evaluate
-    print("[4/5] calibrating on dev split, scoring held-out once ...")
-    res = evaluate(datadir=str(data), outdir=str(out), max_fp_rate=a.max_fp)
+    variant = "NO-CONTENT ABLATION" if a.ablate_content else "full signal set"
+    print(f"[4/5] calibrating on dev split ({variant}), scoring held-out once ...")
+    res = evaluate(datadir=str(data), outdir=str(out), max_fp_rate=a.max_fp,
+                   ablate_content=a.ablate_content)
     h = res["held_out"]
-    print(f"      HELD-OUT: median lead {h['median_lead_days']:.0f}d | "
-          f"catch {h['catch_rate']:.1%} | FP {h['false_positive_rate']:.1%}")
+    cc, cf = h["catch_rate_ci"], h["false_positive_rate_ci"]
+    print(f"      HELD-OUT: median lead {h['median_lead_days']:g}d | "
+          f"catch {h['catch_rate']:.1%} [{cc[0]}-{cc[1]}%] | "
+          f"FP {h['false_positive_rate']:.1%} [{cf[0]}-{cf[1]}%]")
 
     # 5 -- case files
     from driftwatch.casefile import write_cases
     hits = pd.read_json(out / "held_out_triggers.json")
     print(f"[5/5] synthesising {len(hits)} case files ...")
     prov = dict(descriptor_classifier_mode=mode,
+                variant=res["variant"], signals_used=res["signals_used"],
                 calibration="development split (60%); held-out untouched until final scoring",
                 data="synthetic", generator_seed=meta["seed"])
     write_cases(hits, merchants, txn, res["thresholds"], prov, out / "cases")

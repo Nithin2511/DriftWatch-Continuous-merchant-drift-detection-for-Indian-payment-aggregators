@@ -1,0 +1,96 @@
+{
+  "case_id": "DW-MID0153-D187",
+  "generated_at_utc": "2026-08-23T20:48:32+00:00",
+  "subject_entity": {
+    "merchant_id": "MID0153",
+    "declared_category": "travel_agency",
+    "declared_avg_ticket_inr": 5172.53,
+    "declared_monthly_volume": 324,
+    "onboarding_day": 116,
+    "settlement_account": "ACC79742646"
+  },
+  "trigger_day": 187,
+  "days_since_onboarding": 71,
+  "merchant_id": "MID0153",
+  "declared_category": "travel_agency",
+  "grounds_for_review": {
+    "branch": "A_corroboration",
+    "rule": "Branch A (corroboration): >= 2 distinct signal families each crossed threshold within a rolling 14-day window.",
+    "families_fired": [
+      "network",
+      "velocity"
+    ]
+  },
+  "signals_fired": [
+    {
+      "signal": "velocity_peer_z",
+      "family": "velocity",
+      "value": 2.9141,
+      "value_at_trigger_day": 2.9141,
+      "threshold": 2.5,
+      "first_crossed_day": 187,
+      "consecutive_extreme_days": 0,
+      "reading": "Transaction-volume growth ratio, scored against the same-day cross-sectional distribution across the whole portfolio. Measured peer-relative so that portfolio-wide seasonal surges do not register."
+    },
+    {
+      "signal": "network_overlap",
+      "family": "network",
+      "value": 0.35,
+      "value_at_trigger_day": 0.35,
+      "threshold": 0.2,
+      "first_crossed_day": 163,
+      "consecutive_extreme_days": 0,
+      "reading": "Overlap of this merchant's recent payer-VPA population with another merchant's, and/or a settlement account shared with another merchant."
+    }
+  ],
+  "supporting_data": {
+    "baseline_median_ticket_inr": 5909.2,
+    "current_median_ticket_inr": 4434.86,
+    "ticket_shift_multiple": 0.75,
+    "baseline_daily_txns": 12.5,
+    "current_daily_txns": 22.4,
+    "volume_shift_multiple": 1.79,
+    "current_top_descriptors": [
+      {
+        "descriptor": "travel insurance addon",
+        "n": 34
+      },
+      {
+        "descriptor": "flight booking del-bom",
+        "n": 31
+      },
+      {
+        "descriptor": "hotel 2 nights goa",
+        "n": 31
+      }
+    ],
+    "distinct_payer_vpas_in_window": 217,
+    "refund_rate_in_window": 0.0096
+  },
+  "network_context": {
+    "linked_merchant": "MID0041",
+    "shared_settlement_account": true
+  },
+  "recommended_action": "escalate - open investigation within 72 hours; structural link to another merchant entity suggests possible undisclosed third-party processing",
+  "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
+  "provenance": {
+    "descriptor_classifier_mode": "gemini",
+    "variant": "no_content_ablation",
+    "signals_used": [
+      "ticket_psi",
+      "velocity_peer_z",
+      "network_overlap"
+    ],
+    "calibration": "development split (60%); held-out untouched until final scoring",
+    "data": "synthetic",
+    "generator_seed": 20260823,
+    "thresholds": {
+      "ticket_psi": 0.25,
+      "velocity_peer_z": 2.5,
+      "network_overlap": 0.2
+    },
+    "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
+    "narrative_mode": "fallback-template"
+  },
+  "narrative": "Merchant MID0153 (declared category: travel_agency) crossed the corroboration threshold on observation day 187, 71 days after onboarding. 2 independent signal families fired inside the review window.\n\nEvidence: velocity_peer_z = 2.914 against a threshold of 2.500 (first crossed day 187); network_overlap = 0.350 against a threshold of 0.200 (first crossed day 163).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: escalate - open investigation within 72 hours; structural link to another merchant entity suggests possible undisclosed third-party processing. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
+}

@@ -1,0 +1,181 @@
+{
+  "variant": "no_content_ablation",
+  "signals_used": [
+    "ticket_psi",
+    "velocity_peer_z",
+    "network_overlap"
+  ],
+  "thresholds": {
+    "ticket_psi": 0.25,
+    "velocity_peer_z": 2.5,
+    "network_overlap": 0.2
+  },
+  "quantiles": {
+    "ticket_psi": 0.25,
+    "velocity_peer_z": 2.5,
+    "network_overlap": 0.2
+  },
+  "n_dev": 132,
+  "n_held_out": 88,
+  "development": {
+    "n_drifters": 27,
+    "n_non_drifters": 105,
+    "catch_rate": 0.5185185185185185,
+    "caught": 14,
+    "median_lead_days": 31.0,
+    "p25_lead_days": 24.0,
+    "p75_lead_days": 65.0,
+    "min_lead_days": 17,
+    "max_lead_days": 123,
+    "catch_rate_ci": [
+      34.0,
+      69.3
+    ],
+    "false_positive_rate": 0.0761904761904762,
+    "n_false_positives": 8,
+    "false_positive_rate_ci": [
+      3.9,
+      14.3
+    ],
+    "n_fp_confounders": 4,
+    "n_fp_plain": 4,
+    "break_even_cost_per_fp_inr": 1487500,
+    "missed_by_type": {
+      "prohibited_category": 7,
+      "bust_out": 3,
+      "third_party_layering": 3
+    },
+    "expected_cost_inr": 11146000,
+    "do_nothing_cost_inr": 22950000,
+    "cost_avoided_inr": 11804000,
+    "leads": [
+      28,
+      38,
+      72,
+      27,
+      66,
+      18,
+      20,
+      23,
+      123,
+      17,
+      34,
+      28,
+      62,
+      66
+    ],
+    "fp_ids": [
+      "MID0021",
+      "MID0026",
+      "MID0032",
+      "MID0062",
+      "MID0086",
+      "MID0151",
+      "MID0179",
+      "MID0185"
+    ],
+    "fp_confounder_ids": [
+      "MID0021",
+      "MID0086",
+      "MID0151",
+      "MID0179"
+    ]
+  },
+  "held_out": {
+    "n_drifters": 17,
+    "n_non_drifters": 71,
+    "catch_rate": 0.5294117647058824,
+    "caught": 9,
+    "median_lead_days": 36.0,
+    "p25_lead_days": 22.0,
+    "p75_lead_days": 45.0,
+    "min_lead_days": 4,
+    "max_lead_days": 68,
+    "catch_rate_ci": [
+      31.0,
+      73.8
+    ],
+    "false_positive_rate": 0.11267605633802817,
+    "n_false_positives": 8,
+    "false_positive_rate_ci": [
+      5.8,
+      20.7
+    ],
+    "n_fp_confounders": 5,
+    "n_fp_plain": 3,
+    "break_even_cost_per_fp_inr": 956250,
+    "missed_by_type": {
+      "prohibited_category": 5,
+      "bust_out": 2,
+      "third_party_layering": 1
+    },
+    "expected_cost_inr": 6896000,
+    "do_nothing_cost_inr": 14450000,
+    "cost_avoided_inr": 7554000,
+    "leads": [
+      65,
+      4,
+      22,
+      40,
+      68,
+      36,
+      29,
+      19,
+      45
+    ],
+    "fp_ids": [
+      "MID0093",
+      "MID0106",
+      "MID0124",
+      "MID0186",
+      "MID0188",
+      "MID0195",
+      "MID0200",
+      "MID0204"
+    ],
+    "fp_confounder_ids": [
+      "MID0093",
+      "MID0186",
+      "MID0188",
+      "MID0195",
+      "MID0204"
+    ]
+  },
+  "held_out_by_type": {
+    "prohibited_category": {
+      "n": 5,
+      "caught": 0,
+      "median_lead": 0.0,
+      "catch_rate_ci": [
+        0.0,
+        43.4
+      ]
+    },
+    "third_party_layering": {
+      "n": 7,
+      "caught": 6,
+      "median_lead": 42.5,
+      "catch_rate_ci": [
+        48.7,
+        97.4
+      ]
+    },
+    "bust_out": {
+      "n": 5,
+      "caught": 3,
+      "median_lead": 19.0,
+      "catch_rate_ci": [
+        23.1,
+        88.2
+      ]
+    }
+  },
+  "held_out_min_lead_case": {
+    "merchant_id": "MID0054",
+    "drift_type": "bust_out",
+    "lead_days": 4,
+    "trigger_day": 166,
+    "t_lag": 170,
+    "subtlety": 1.0
+  }
+}

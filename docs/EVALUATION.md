@@ -106,6 +106,77 @@ The honest summary is: **lead time generalises, all three threat models are caug
 lead time (19–41 days), legitimate-change confounders explain the majority (6 of 9) of held-out
 false positives, and the split sizes are too small to support precise rate claims.**
 
+## Ablation: performance without the content signal
+
+`category_mismatch` reads item-level descriptor text. **A real payment aggregator often
+does not have that.** A UPI record reliably carries an amount, a timestamp, a payer VPA, a
+PSP handle and a settlement account; item descriptors exist only when the merchant chooses
+to pass them, and across a long tail of merchants they are sparse, templated, or absent.
+See [DATA_PLAN.md](DATA_PLAN.md) for what `descriptor` is in this schema.
+
+So the honest question is not "how well does DriftWatch do?" but "how well does it do when
+the content family is unavailable?" That is a number, not a caveat:
+
+```bash
+python run_all.py --ablate-content     # writes out-ablation/
+```
+
+The content family is **removed from the signal set**, not zeroed. Branch A still requires
+two *distinct* families; three remain (distribution, velocity, network), all derivable from
+amount, timing and counterparty identifiers alone. The full grid is then re-searched on the
+development split under the same objective and the same FP budget, and held-out is scored
+once. No threshold, rule, or objective was changed to flatter the ablation.
+
+### Held-out, full signal set vs no content family
+
+| | Full (4 families) | **No content (3 families)** |
+|---|---|---|
+| Caught before `T_lag` | 14/17 — 82.4% (CI 59.0–93.8) | **9/17 — 52.9% (CI 31.0–73.8)** |
+| Median lead | 32.5 d | **36.0 d** |
+| Lead IQR | 20–40 d | **22–45 d** |
+| Lead range | 4–68 d | **4–68 d** |
+| False-positive rate | 12.7% — 9/71 (CI 6.8–22.4) | **11.3% — 8/71 (CI 5.8–20.7)** |
+| of which confounders | 6 | **5** |
+| Break-even FP cost | ₹13.2 lakh | **₹9.6 lakh** |
+| Dev FP (budget ≤ 10%) | 8.6% | **7.6%** |
+
+### By drift type, held-out
+
+| Type | Full | No content | What carries it |
+|---|---|---|---|
+| `third_party_layering` | 7/7 @ 41.0 d | **6/7 @ 42.5 d** (CI 48.7–97.4) | network overlap + ticket PSI — barely affected |
+| `bust_out` | 3/5 @ 19.0 d | **3/5 @ 19.0 d** (CI 23.1–88.2) | Branch B on velocity alone — unaffected |
+| `prohibited_category` | 4/5 @ 27.0 d | **0/5** (CI 0.0–43.4) | content only — collapses completely |
+
+### Reading it
+
+**The content family is load-bearing for exactly one threat model.** `prohibited_category`
+goes from 4/5 to 0/5. That is the expected result and it is mechanical: a merchant that
+starts selling a prohibited product while keeping its ticket sizes, growth rate and payer
+population stable is, by construction, invisible to amount/timing/counterparty signals. The
+separability check predicted this before any detector existed — that class has a median
+volume ratio of 1.12, inside the non-drifter range.
+
+**The other two threat models are essentially unaffected.** `third_party_layering` loses one
+case of seven; `bust_out` loses none. Layering is caught by payer-VPA overlap and ticket
+distribution; a bust-out is a volume ramp, which is what Branch B detects.
+
+**Median lead goes up, not down, and that is not an improvement.** 32.5 → 36.0 days is a
+survivorship effect: the cases that still fire are the strongly corroborated ones, which
+also tend to fire early. Fewer drifters caught, and the ones caught were always the easy
+ones. Do not read the higher median as the ablation performing better.
+
+**The floor.** Stripped of any dependence on merchant-supplied text, DriftWatch still buys a
+median **36 days** of lead time on **9 of 17** held-out drifters at an 11.3% false-positive
+rate, using only signals every PA already has for every transaction. Both catch intervals
+(31.0–73.8 vs 59.0–93.8) overlap, so this evaluation cannot claim the drop is significant at
+n=17 either — but the per-class collapse of `prohibited_category` from 4/5 to 0/5 is not a
+statistical artefact, it is a structural one.
+
+**Same budget caveat as the headline run.** Dev FP is 7.6%, inside the 10% budget the
+calibration enforces; held-out lands at 11.3%, outside it. The budget is a development-split
+guarantee and does not transfer as one.
+
 ## Provenance of the committed run
 
 | | |

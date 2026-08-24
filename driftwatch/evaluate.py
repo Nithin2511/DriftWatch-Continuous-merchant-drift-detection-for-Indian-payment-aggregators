@@ -26,18 +26,35 @@ reproducible in production from an unlabelled portfolio.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from .trigger import SIGNALS, run_triggers
+from .trigger import SIGNALS, SIGNALS_NO_CONTENT, run_triggers
 
 # Cost model. Deliberately conservative and stated out loud rather than buried.
 # Sources for the loss side are the verified scheme/regulatory exposures; the
 # investigation cost is an order-of-magnitude estimate and is labelled as such.
 COST_FALSE_POSITIVE_INR = 12_000    # analyst review + merchant relationship friction
 COST_MISSED_DRIFT_INR = 850_000     # scheme assessment + chargeback write-off + remediation
+
+
+def wilson_ci(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion, as a percentage pair.
+
+    Used instead of the normal approximation because the splits are small (17 held-out
+    drifters); the normal interval misbehaves badly near 0 and 1 at that n.
+    """
+    if n == 0:
+        return (0.0, 0.0)
+    p = k / n
+    denom = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    lo, hi = 100 * (centre - half), 100 * (centre + half)
+    return (round(max(0.0, lo), 1), round(min(100.0, hi), 1))
 
 
 def split_merchants(truth: pd.DataFrame, seed: int = 7, dev_frac: float = 0.6) -> tuple[set[str], set[str]]:
@@ -62,13 +79,15 @@ def thresholds_at_q(sig: pd.DataFrame, q: dict) -> dict[str, float]:
     quantile. PSI and z-score DO have canonical scales, so they are absolute values
     taken from the literature -- see trigger.py docstring for why quantiles were wrong
     for those."""
-    return {
-        "category_mismatch": float(np.quantile(sig["category_mismatch"],
-                                               q["category_mismatch"])),
+    full = {
+        "category_mismatch": (float(np.quantile(sig["category_mismatch"],
+                                                q["category_mismatch"]))
+                              if "category_mismatch" in q else None),
         "ticket_psi": float(q["ticket_psi"]),
         "velocity_peer_z": float(q["velocity_peer_z"]),
         "network_overlap": float(q["network_overlap"]),
     }
+    return {k: v for k, v in full.items() if v is not None}
 
 
 def score(fired: pd.DataFrame, truth: pd.DataFrame, subset: set[str]) -> dict:
@@ -105,7 +124,9 @@ def score(fired: pd.DataFrame, truth: pd.DataFrame, subset: set[str]) -> dict:
         p75_lead_days=float(np.percentile(leads, 75)) if leads else 0.0,
         min_lead_days=int(min(leads)) if leads else 0,
         max_lead_days=int(max(leads)) if leads else 0,
+        catch_rate_ci=wilson_ci(caught, n_d),
         false_positive_rate=fpr, n_false_positives=len(fp_ids),
+        false_positive_rate_ci=wilson_ci(len(fp_ids), n_n),
         n_fp_confounders=len(fp_conf),
         n_fp_plain=len(fp_ids) - len(fp_conf),
         # The decision criterion is the break-even, not the rate: the cost per wrongly
@@ -121,12 +142,23 @@ def score(fired: pd.DataFrame, truth: pd.DataFrame, subset: set[str]) -> dict:
 
 
 def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
-              max_fp_rate: float = 0.10) -> tuple[dict, dict, list]:
+              max_fp_rate: float = 0.10,
+              signals: list[str] | None = None) -> tuple[dict, dict, list]:
     """Grid-search q on the DEVELOPMENT split only.
-    Objective: maximise median lead time, subject to dev FP rate <= max_fp_rate."""
+
+    Objective: maximise TOTAL lead-days bought, subject to dev FP rate <= max_fp_rate.
+    (Not median-lead-among-those-caught, which is degenerate -- see docs/EVALUATION.md.)
+
+    `signals` selects the participating families. The ablation passes SIGNALS_NO_CONTENT,
+    which drops the content grid axis entirely rather than searching a threshold for a
+    family that is not in play.
+    """
+    signals = signals or SIGNALS
+    use_content = "category_mismatch" in signals
     dsig = sig[sig.merchant_id.isin(dev)]
-    # content: portfolio quantile (no canonical scale)
-    grid_content = [0.86, 0.91, 0.95, 0.98]
+    # content: portfolio quantile (no canonical scale). A single sentinel when ablated,
+    # so the remaining grid is searched at exactly the same resolution.
+    grid_content = [0.86, 0.91, 0.95, 0.98] if use_content else [None]
     # PSI: canonical interpretation -- 0.10 minor shift, 0.25 significant shift
     grid_dist = [0.15, 0.25, 0.40]
     # peer z-score: standard deviations above the portfolio median that day
@@ -139,10 +171,11 @@ def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
         for qd in grid_dist:
             for qv in grid_vel:
                 for qn in grid_net:
-                    q = dict(category_mismatch=qc, ticket_psi=qd,
-                             velocity_peer_z=qv, network_overlap=qn)
+                    q = dict(ticket_psi=qd, velocity_peer_z=qv, network_overlap=qn)
+                    if use_content:
+                        q["category_mismatch"] = qc
                     thr = thresholds_at_q(dsig, q)
-                    fired = run_triggers(dsig, thr)
+                    fired = run_triggers(dsig, thr, signals)
                     s = score(fired, truth, dev)
                     # OBJECTIVE: total lead-days bought across the portfolio.
                     # Deliberately NOT median-lead-among-those-caught, which is
@@ -163,38 +196,60 @@ def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
     return best_thr, best_q, trials
 
 
-def main(datadir: str = "data", outdir: str = "out", max_fp_rate: float = 0.10) -> dict:
+def main(datadir: str = "data", outdir: str = "out", max_fp_rate: float = 0.10,
+         ablate_content: bool = False) -> dict:
+    """Calibrate on dev, score held-out once, write evaluation.json.
+
+    ablate_content removes the content family (category_mismatch) from the signal set
+    entirely -- not zeroed, removed -- and recalibrates from scratch. Branch A still
+    requires two DISTINCT families; three remain. See docs/EVALUATION.md.
+    """
     datadir, outdir = Path(datadir), Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     sig = pd.read_parquet(datadir / "signals.parquet")
     truth = pd.read_csv(datadir / "ground_truth.csv")
 
+    signals = SIGNALS_NO_CONTENT if ablate_content else SIGNALS
     dev, hold = split_merchants(truth)
 
-    thr, q, trials = calibrate(sig, truth, dev, max_fp_rate=max_fp_rate)
+    thr, q, trials = calibrate(sig, truth, dev, max_fp_rate=max_fp_rate, signals=signals)
 
-    dev_fired = run_triggers(sig[sig.merchant_id.isin(dev)], thr)
+    dev_fired = run_triggers(sig[sig.merchant_id.isin(dev)], thr, signals)
     dev_res = score(dev_fired, truth, dev)
 
     # ---- the held-out split is touched exactly once, here ----
     hold_sig = sig[sig.merchant_id.isin(hold)]
-    hold_fired = run_triggers(hold_sig, thr)
+    hold_fired = run_triggers(hold_sig, thr, signals)
     hold_res = score(hold_fired, truth, hold)
 
     # per-drift-type breakdown on held-out
     t = truth.set_index("merchant_id")
     det = dict(zip(hold_fired.merchant_id, hold_fired.trigger_day)) if len(hold_fired) else {}
-    by_type = {}
+    by_type, earliest = {}, None
     for dt in ["prohibited_category", "third_party_layering", "bust_out"]:
         rows = t[(t.index.isin(hold)) & (t.drifts) & (t.drift_type == dt)]
         ld = [int(r.t_lag - det[m]) for m, r in rows.iterrows()
               if m in det and det[m] < r.t_lag]
         by_type[dt] = dict(n=len(rows), caught=len(ld),
-                           median_lead=float(np.median(ld)) if ld else 0.0)
+                           median_lead=float(np.median(ld)) if ld else 0.0,
+                           catch_rate_ci=wilson_ci(len(ld), len(rows)))
+        # Track the thinnest margin in the whole held-out set. A lead of a few days is
+        # nearly no lead against a 72-hour clock, so it gets named rather than averaged
+        # away inside the range.
+        for mid, r in rows.iterrows():
+            if mid in det and det[mid] < r.t_lag:
+                lead = int(r.t_lag - det[mid])
+                if earliest is None or lead < earliest["lead_days"]:
+                    earliest = dict(merchant_id=mid, drift_type=dt, lead_days=lead,
+                                    trigger_day=int(det[mid]), t_lag=int(r.t_lag),
+                                    subtlety=float(r.subtlety))
 
     hold_fired.to_json(outdir / "held_out_triggers.json", orient="records", indent=2)
-    result = dict(thresholds=thr, quantiles=q, n_dev=len(dev), n_held_out=len(hold),
-                  development=dev_res, held_out=hold_res, held_out_by_type=by_type)
+    result = dict(variant=("no_content_ablation" if ablate_content else "full"),
+                  signals_used=signals,
+                  thresholds=thr, quantiles=q, n_dev=len(dev), n_held_out=len(hold),
+                  development=dev_res, held_out=hold_res, held_out_by_type=by_type,
+                  held_out_min_lead_case=earliest)
     clean = json.loads(json.dumps(result, default=float))
     (outdir / "evaluation.json").write_text(json.dumps(clean, indent=2))
     return result

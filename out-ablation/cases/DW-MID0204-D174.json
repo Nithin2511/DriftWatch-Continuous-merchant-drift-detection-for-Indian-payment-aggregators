@@ -1,0 +1,85 @@
+{
+  "case_id": "DW-MID0204-D174",
+  "generated_at_utc": "2026-08-23T20:48:33+00:00",
+  "subject_entity": {
+    "merchant_id": "MID0204",
+    "declared_category": "ecommerce",
+    "declared_avg_ticket_inr": 740.29,
+    "declared_monthly_volume": 741,
+    "onboarding_day": 20,
+    "settlement_account": "ACC62606518"
+  },
+  "trigger_day": 174,
+  "days_since_onboarding": 154,
+  "merchant_id": "MID0204",
+  "declared_category": "ecommerce",
+  "grounds_for_review": {
+    "branch": "B_sustained_extreme",
+    "rule": "Branch B (sustained single-family extreme): one family exceeded 2.5x its threshold on >= 5 consecutive observation days, with no corroborating family.",
+    "families_fired": [
+      "distribution"
+    ]
+  },
+  "signals_fired": [
+    {
+      "signal": "ticket_psi",
+      "family": "distribution",
+      "value": 0.2533,
+      "value_at_trigger_day": 0.8239,
+      "threshold": 0.25,
+      "first_crossed_day": 160,
+      "consecutive_extreme_days": 5,
+      "reading": "Population Stability Index of the trailing ticket-size distribution against this merchant's 30-day post-onboarding baseline. PSI > 0.25 is conventionally read as a significant distributional shift."
+    }
+  ],
+  "supporting_data": {
+    "baseline_median_ticket_inr": 608.96,
+    "current_median_ticket_inr": 1100.95,
+    "ticket_shift_multiple": 1.81,
+    "baseline_daily_txns": 27.5,
+    "current_daily_txns": 9.6,
+    "volume_shift_multiple": 0.35,
+    "current_top_descriptors": [
+      {
+        "descriptor": "denim jacket",
+        "n": 8
+      },
+      {
+        "descriptor": "test series enrolment",
+        "n": 8
+      },
+      {
+        "descriptor": "course fee semester",
+        "n": 8
+      }
+    ],
+    "distinct_payer_vpas_in_window": 123,
+    "refund_rate_in_window": 0.0
+  },
+  "network_context": {
+    "linked_merchant": null,
+    "shared_settlement_account": false
+  },
+  "recommended_action": "investigate - open review within 72 hours; single-family sustained extreme divergence, no corroborating signal family yet",
+  "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
+  "provenance": {
+    "descriptor_classifier_mode": "gemini",
+    "variant": "no_content_ablation",
+    "signals_used": [
+      "ticket_psi",
+      "velocity_peer_z",
+      "network_overlap"
+    ],
+    "calibration": "development split (60%); held-out untouched until final scoring",
+    "data": "synthetic",
+    "generator_seed": 20260823,
+    "thresholds": {
+      "ticket_psi": 0.25,
+      "velocity_peer_z": 2.5,
+      "network_overlap": 0.2
+    },
+    "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
+    "narrative_mode": "fallback-template"
+  },
+  "narrative": "Merchant MID0204 (declared category: ecommerce) crossed the corroboration threshold on observation day 174, 154 days after onboarding. 1 independent signal families fired inside the review window.\n\nEvidence: ticket_psi = 0.253 against a threshold of 0.250 (first crossed day 160).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: investigate - open review within 72 hours; single-family sustained extreme divergence, no corroborating signal family yet. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
+}

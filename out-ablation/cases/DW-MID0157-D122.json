@@ -1,0 +1,96 @@
+{
+  "case_id": "DW-MID0157-D122",
+  "generated_at_utc": "2026-08-23T20:48:32+00:00",
+  "subject_entity": {
+    "merchant_id": "MID0157",
+    "declared_category": "food_and_beverage",
+    "declared_avg_ticket_inr": 240.69,
+    "declared_monthly_volume": 1977,
+    "onboarding_day": 4,
+    "settlement_account": "ACC46967859"
+  },
+  "trigger_day": 122,
+  "days_since_onboarding": 118,
+  "merchant_id": "MID0157",
+  "declared_category": "food_and_beverage",
+  "grounds_for_review": {
+    "branch": "A_corroboration",
+    "rule": "Branch A (corroboration): >= 2 distinct signal families each crossed threshold within a rolling 14-day window.",
+    "families_fired": [
+      "distribution",
+      "velocity"
+    ]
+  },
+  "signals_fired": [
+    {
+      "signal": "ticket_psi",
+      "family": "distribution",
+      "value": 0.2693,
+      "value_at_trigger_day": 0.2693,
+      "threshold": 0.25,
+      "first_crossed_day": 122,
+      "consecutive_extreme_days": 0,
+      "reading": "Population Stability Index of the trailing ticket-size distribution against this merchant's 30-day post-onboarding baseline. PSI > 0.25 is conventionally read as a significant distributional shift."
+    },
+    {
+      "signal": "velocity_peer_z",
+      "family": "velocity",
+      "value": 3.7296,
+      "value_at_trigger_day": 2.9457,
+      "threshold": 2.5,
+      "first_crossed_day": 114,
+      "consecutive_extreme_days": 0,
+      "reading": "Transaction-volume growth ratio, scored against the same-day cross-sectional distribution across the whole portfolio. Measured peer-relative so that portfolio-wide seasonal surges do not register."
+    }
+  ],
+  "supporting_data": {
+    "baseline_median_ticket_inr": 265.99,
+    "current_median_ticket_inr": 361.93,
+    "ticket_shift_multiple": 1.36,
+    "baseline_daily_txns": 85.1,
+    "current_daily_txns": 327.0,
+    "volume_shift_multiple": 3.84,
+    "current_top_descriptors": [
+      {
+        "descriptor": "veg biryani",
+        "n": 389
+      },
+      {
+        "descriptor": "cold coffee",
+        "n": 383
+      },
+      {
+        "descriptor": "chicken roll",
+        "n": 381
+      }
+    ],
+    "distinct_payer_vpas_in_window": 1654,
+    "refund_rate_in_window": 0.0033
+  },
+  "network_context": {
+    "linked_merchant": null,
+    "shared_settlement_account": false
+  },
+  "recommended_action": "investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed",
+  "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
+  "provenance": {
+    "descriptor_classifier_mode": "gemini",
+    "variant": "no_content_ablation",
+    "signals_used": [
+      "ticket_psi",
+      "velocity_peer_z",
+      "network_overlap"
+    ],
+    "calibration": "development split (60%); held-out untouched until final scoring",
+    "data": "synthetic",
+    "generator_seed": 20260823,
+    "thresholds": {
+      "ticket_psi": 0.25,
+      "velocity_peer_z": 2.5,
+      "network_overlap": 0.2
+    },
+    "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
+    "narrative_mode": "fallback-template"
+  },
+  "narrative": "Merchant MID0157 (declared category: food_and_beverage) crossed the corroboration threshold on observation day 122, 118 days after onboarding. 2 independent signal families fired inside the review window.\n\nEvidence: ticket_psi = 0.269 against a threshold of 0.250 (first crossed day 122); velocity_peer_z = 3.730 against a threshold of 2.500 (first crossed day 114).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
+}
