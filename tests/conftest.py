@@ -1,47 +1,58 @@
 """
 Pytest configuration.
 
-Its one job is to make skipped consistency tests impossible to miss.
+Its one job is to make skipped tests impossible to miss.
 
 The docs-consistency suite guards every number quoted in README.md and
 docs/EVALUATION.md against `out/evaluation.json`. Those tests skip when the artifact is
-absent, which is correct behaviour -- but for a while CI had no artifact, so nineteen of
-them skipped on every pull request and the guard silently enforced nothing. The suite was
-green the entire time. A quiet skip is indistinguishable from a pass at a glance, and that
-is exactly how the gap survived.
+absent, which is correct behaviour -- but `out/` was gitignored, so on CI nineteen of them
+skipped on every pull request, plus one invariant test, and the guard enforced nothing.
+The suite was green the whole time. A skipped test is indistinguishable from a passing one
+in the summary line, and that is exactly how the gap survived.
 
-So: if any consistency test skips, the run ends with a banner saying how many and why.
+`out/evaluation.json` is now committed so that cannot recur. This hook is the backstop: if
+anything skips, the run ends with a banner saying how many, why, and which.
 """
 from __future__ import annotations
 
-import pytest
 
-CONSISTENCY_MODULE = "test_docs_consistency"
+def _reason(report) -> str:
+    lr = getattr(report, "longrepr", None)
+    if isinstance(lr, tuple) and len(lr) == 3:
+        return str(lr[2]).removeprefix("Skipped: ")
+    return str(lr) if lr else "unknown"
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    skipped = [r for r in terminalreporter.stats.get("skipped", [])
-               if CONSISTENCY_MODULE in str(getattr(r, "nodeid", ""))]
+    """Report every skip in the suite, grouped by reason.
+
+    Deliberately covers the whole suite rather than one module. The gap that hid was 19
+    docs-consistency tests *plus* one invariant test, and a filter narrow enough to miss
+    that twentieth test would have been part of the same blind spot.
+    """
+    skipped = terminalreporter.stats.get("skipped", [])
     if not skipped:
         return
 
-    reasons = sorted({
-        (r.longrepr[2] if isinstance(getattr(r, "longrepr", None), tuple) and len(r.longrepr) == 3
-         else str(getattr(r, "longrepr", "unknown")))
-        for r in skipped
-    })
+    by_reason: dict[str, list[str]] = {}
+    for rep in skipped:
+        by_reason.setdefault(_reason(rep), []).append(str(getattr(rep, "nodeid", "?")))
 
     w = terminalreporter
-    w.write_sep("=", "DOCS-CONSISTENCY GUARD NOT ENFORCED", red=True, bold=True)
-    w.write_line(f"{len(skipped)} consistency test(s) skipped. Reason(s):")
-    for reason in reasons:
-        w.write_line(f"  - {reason}")
+    w.write_sep("=", f"{len(skipped)} TEST(S) SKIPPED - GUARD PARTIALLY UNENFORCED",
+                yellow=True, bold=True)
+    for reason, nodes in sorted(by_reason.items()):
+        w.write_line(f"{len(nodes)} skipped: {reason}")
+        for node in sorted(nodes)[:4]:
+            w.write_line(f"    {node}")
+        if len(nodes) > 4:
+            w.write_line(f"    ... and {len(nodes) - 4} more")
     w.write_line("")
-    w.write_line("These tests are the only thing checking that the numbers in README.md and")
-    w.write_line("docs/EVALUATION.md still match out/evaluation.json. While they skip, a")
-    w.write_line("documentation number can drift from the pipeline and the suite stays green.")
+    w.write_line("A skipped test looks identical to a passing one in the summary line. That is")
+    w.write_line("how 20 of 39 tests sat inert on every pull request without anyone noticing.")
     w.write_line("")
-    w.write_line("out/evaluation.json is committed precisely so this does not happen in CI.")
-    w.write_line("If it is missing, either the checkout is incomplete or the file was removed")
-    w.write_line("from version control -- fix that rather than accepting the skip.")
-    w.write_sep("=", red=True, bold=True)
+    w.write_line("Expected in CI: the tests needing out/cases/ and out/held_out_triggers.json,")
+    w.write_line("which are generated and deliberately not committed. Run `python run_all.py`")
+    w.write_line("locally to exercise them. Anything ELSE skipping -- above all a missing")
+    w.write_line("out/evaluation.json, which IS committed -- means something is wrong.")
+    w.write_sep("=", yellow=True, bold=True)

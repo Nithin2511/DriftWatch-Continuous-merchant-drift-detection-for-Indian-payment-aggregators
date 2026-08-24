@@ -307,8 +307,10 @@ def test_api_key_is_never_logged(capsys, monkeypatch):
 
 # ---------------------------------------------------------------- case-file consistency
 
-@pytest.mark.skipif(not (ROOT / "out" / "evaluation.json").exists(),
-                    reason="no pipeline output; run `python run_all.py` first")
+@pytest.mark.skipif(
+    not (ROOT / "out" / "cases").exists()
+    or not (ROOT / "out" / "held_out_triggers.json").exists(),
+    reason="needs out/cases/ and out/held_out_triggers.json; run `python run_all.py` locally")
 def test_emitted_case_files_agree_with_the_evaluation():
     ev = json.loads((ROOT / "out" / "evaluation.json").read_text(encoding="utf-8"))
     triggers = json.loads((ROOT / "out" / "held_out_triggers.json").read_text(encoding="utf-8"))

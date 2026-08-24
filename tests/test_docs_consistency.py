@@ -38,9 +38,22 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 EVAL_JSON = ROOT / "out" / "evaluation.json"
 
+CASES_DIR = ROOT / "out" / "cases"
+TRIGGERS = ROOT / "out" / "held_out_triggers.json"
+
+# out/evaluation.json is committed, so everything asserting doc-vs-artifact numbers runs
+# everywhere including CI.
 pytestmark = pytest.mark.skipif(
     not EVAL_JSON.exists(),
-    reason="no pipeline output; run `python run_all.py` first",
+    reason="out/evaluation.json missing; it is committed, so this should never trigger",
+)
+
+# The case files and trigger list are NOT committed -- they are bulky and regenerable.
+# The handful of tests that read them therefore need a local pipeline run. They are
+# marked separately so the skip is attributable rather than lumped in with the rest.
+needs_full_artifact = pytest.mark.skipif(
+    not CASES_DIR.exists() or not TRIGGERS.exists(),
+    reason="needs out/cases/ and out/held_out_triggers.json; run `python run_all.py` locally",
 )
 
 
@@ -273,6 +286,7 @@ def test_evaluation_per_drift_type_row(ev, evaluation_md, dtype):
 
 # ------------------------------------------------------------------ cross-surface agreement
 
+@needs_full_artifact
 def test_narrative_provenance_matches_the_case_files(readme, evaluation_md):
     """The 'N of M Gemini narratives' claim must match what is actually on disk."""
     cases = sorted((ROOT / "out" / "cases").glob("DW-*.json"))
@@ -288,6 +302,7 @@ def test_narrative_provenance_matches_the_case_files(readme, evaluation_md):
             doc, "Gemini narratives", f"{claimed_g} of {claimed_t}", f"{gemini} of {total}")
 
 
+@needs_full_artifact
 def test_case_file_count_matches_triggers(ev):
     """Guards the stale-case-file failure mode: ids embed the trigger day, so a
     recalibration that moves a trigger writes a new file and orphans the old one."""
