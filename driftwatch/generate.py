@@ -176,7 +176,6 @@ def generate(seed: int = 20260823, outdir: str | Path = "data") -> dict:
     for i in range(N_MERCHANTS):
         row = mdf.iloc[i]
         onboard = int(row.onboarding_day)
-        active_days = HORIZON_DAYS - onboard
         if i in drift_idx:
             dtype = drift_types[int(rng.integers(0, 3))]
             # drift must start after the baseline window and leave room to observe

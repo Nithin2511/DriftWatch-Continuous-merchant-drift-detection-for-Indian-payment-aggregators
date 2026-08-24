@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Activity, AlertTriangle, FileText, CheckCircle2, DollarSign, Database, Cpu, GitBranch, Scale, Lock } from 'lucide-react';
+import { Activity, AlertTriangle, FileText, CheckCircle2, DollarSign, Database, Cpu, GitBranch, Scale, Lock } from 'lucide-react';
 import { evaluationData } from '../data/evaluationData';
 
 export default function OverviewTab({ setActiveTab, setSelectedCaseId }) {

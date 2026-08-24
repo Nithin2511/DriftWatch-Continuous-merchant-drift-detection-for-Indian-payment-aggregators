@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, AlertOctagon, ArrowRight, Zap, ShieldCheck } from 'lucide-react';
+import { Clock, AlertOctagon, Zap } from 'lucide-react';
 import { evaluationData } from '../data/evaluationData';
 
 export default function ClocksBanner() {

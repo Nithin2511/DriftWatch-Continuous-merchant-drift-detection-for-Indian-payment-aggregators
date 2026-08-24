@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, Clock, CheckCircle2, TrendingUp, AlertTriangle, Layers } from 'lucide-react';
+import { ShieldAlert, Clock, CheckCircle2 } from 'lucide-react';
 import { evaluationData } from '../data/evaluationData';
 
 export default function Header({ activeTab, setActiveTab }) {

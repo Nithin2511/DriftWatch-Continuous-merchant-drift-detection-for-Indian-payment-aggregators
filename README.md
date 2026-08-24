@@ -15,24 +15,138 @@ No install, no key, no backend — the deployed build carries the committed
 evaluation output. Start on **Overview**, then open **Case files (23)**: it lists
 every held-out trigger, including the false positives, labelled as such.
 
-A merchant clears KYC on day 1 and drifts by day 40 — into prohibited categories, into
-processing for an undisclosed third party, or into a bust-out. Two clocks are running,
-badly mismatched:
+## The problem
+
+A **payment aggregator** (PA) — Razorpay, Cashfree, PayU — onboards a merchant, verifies
+who they are, and then processes their payments. Verification happens once, on day 1. The
+business can change any time after that.
+
+**Merchant drift** is that change going somewhere it should not. Three forms matter:
+
+| Threat model | What the merchant actually starts doing |
+|---|---|
+| **Prohibited category** | Quietly begins selling goods the PA is not licensed to process — replica goods, unlicensed nutraceuticals, offshore wallet top-ups — while its registration still says "electronics retail" |
+| **Third-party layering** | Starts processing payments for *someone else's* business through its own account, so an unvetted entity gets payment access it was never approved for |
+| **Bust-out** | Ramps volume hard for weeks to build trust and float, then takes the money and disappears, leaving refunds and chargebacks behind |
+
+A merchant clears KYC on day 1 and drifts by day 40. Two clocks are running, badly
+mismatched:
 
 | Clock | Duration |
 |---|---|
 | Time to investigate once a warning signal appears | **72 hours** (Mastercard SMMP, live 24 Jul 2026) |
-| Time until confirming evidence arrives (chargebacks, LEA holds) | **30–90 days** |
+| Time until confirming evidence arrives — chargebacks, law-enforcement account holds | **30–90 days** |
 
-A system that waits for chargebacks cannot meet a 72-hour clock. DriftWatch fires on
-leading behavioural signals and is graded on **how many days of warning it bought**.
+A system that waits for chargebacks cannot meet a 72-hour clock; it is structurally too
+late. DriftWatch fires on **leading behavioural signals** and is graded on how many days of
+warning that bought.
+
+---
+
+## What it does
+
+Five components. The ML lives inside individual signals; the decision that combines them is
+a rule you can read.
+
+```
+generate.py  ->  synthetic portfolio: 220 merchants, 1.03M UPI transactions,
+                 44 drifters, and 17 "confounders" -- honest merchants whose
+                 business genuinely changed, which SHOULD be hard to tell
+                 apart from drift. Ground truth is held back.
+signals.py   ->  4 independent walk-forward signal families
+trigger.py   ->  explicit two-branch rule (no composite score, no black box)
+casefile.py  ->  structured audit case file + generated narrative
+evaluate.py  ->  dev/held-out split, lead-time and false-positive-cost reporting
+```
+
+### The four signals
+
+Each measures a merchant against **its own declared profile and its own history**, not
+against a global model of "risky".
+
+| Signal | Family | What it measures |
+|---|---|---|
+| `category_mismatch` | content | Share of transactions whose item text implies a category other than the declared one |
+| `ticket_psi` | distribution | **PSI** (Population Stability Index — a standard measure of how far a distribution has moved) of recent ticket sizes against this merchant's own first-30-day baseline. Above 0.25 is conventionally a significant shift |
+| `velocity_peer_z` | velocity | Growth rate, **peer-relative**: scored against how every *other* merchant grew on the same day, so a market-wide surge registers as normal |
+| `network_overlap` | network | How far this merchant's payer population overlaps another merchant's — **VPA** being the UPI Virtual Payment Address, the `name@bank` handle a customer pays from — plus shared settlement accounts |
+
+### The rule that combines them
+
+```
+Branch A   >= 2 DISTINCT families cross threshold within a rolling 14-day window
+Branch B   1 family at >= 2.5x threshold for 5 consecutive days
+           -> weaker recommended action
+```
+
+Branch B exists because a bust-out is single-family by construction: it crosses velocity
+hard and crosses nothing else, because a volume ramp is what a bust-out *is*.
+
+### The output is a case file, not a score
+
+A score cannot satisfy an investigation duty. The regulator asks *when did you know, what
+did you look at, and on what basis did you act*. Every trigger emits this — trimmed here,
+full versions land in `out/cases/`:
+
+```jsonc
+{
+  "case_id": "DW-MID0019-D152",
+  "subject_entity": {
+    "merchant_id": "MID0019",
+    "declared_category": "food_and_beverage",   // what they registered as
+    "declared_avg_ticket_inr": 270.08,
+    "onboarding_day": 28
+  },
+  "trigger_day": 152,                            // 124 days after onboarding
+  "grounds_for_review": {
+    "branch": "A_corroboration",
+    "rule": "Branch A: >= 2 distinct signal families each crossed threshold
+             within a rolling 14-day window.",
+    "families_fired": ["distribution", "network"]
+  },
+  "signals_fired": [
+    { "signal": "ticket_psi",      "value": 0.2819, "threshold": 0.25,
+      "first_crossed_day": 152,
+      "reading": "PSI of trailing ticket sizes vs this merchant's own 30-day
+                  baseline. > 0.25 is a significant distributional shift." },
+    { "signal": "network_overlap", "value": 0.35,   "threshold": 0.20,
+      "first_crossed_day": 142,
+      "reading": "Overlap of this merchant's payer-VPA population with another
+                  merchant's, and/or a shared settlement account." }
+  ],
+  "supporting_data": {
+    "baseline_median_ticket_inr": 267.9, "current_median_ticket_inr": 362.14,
+    "ticket_shift_multiple": 1.35,
+    "baseline_daily_txns": 87.6,         "current_daily_txns": 142.6
+  },
+  "recommended_action": "escalate - open investigation within 72 hours; ...",
+  "provenance": {
+    "descriptor_classifier_mode": "gemini",     // or a labelled fallback
+    "narrative_mode": "gemini",
+    "data": "synthetic", "generator_seed": 20260823,
+    "thresholds": { "ticket_psi": 0.25, "network_overlap": 0.2 }
+  },
+  "narrative": "Merchant MID0019 (declared: food_and_beverage) crossed the
+                corroboration threshold on day 152 ..."
+}
+```
+
+Every case states the thresholds it was judged against and how it was produced, so a
+reviewer can replay the decision.
 
 ---
 
 ## Headline result
 
-Held-out split (40% of merchants, scored exactly once, thresholds never tuned on it).
-**This is the system's result.** One variant appears below it — a no-content ablation — which is a stress test, not an alternative headline.
+**The metric is lead time bought.** For every drifting merchant the generator records
+`T_lag` — the day the lagging, confirming evidence (a chargeback surge, an account hold)
+*would have* arrived anyway. **Lead time = `T_lag` − the day DriftWatch fired**: the days of
+warning bought over doing nothing. A detector with excellent AUC that only fires once
+chargebacks are flowing bought **zero** days, and the chargebacks would have caught it
+anyway.
+
+Held-out split — 40% of merchants, scored exactly once, thresholds never tuned on it.
+**This is the system's result.**
 
 ```
 Median LEAD TIME BOUGHT        32.5 days    (IQR 20-40, range 4-68)
@@ -42,9 +156,19 @@ False-positive rate            9/71         12.7%   95% CI  6.8-22.4
                                             (6 of the 9 are legitimate-change confounders)
 ```
 
-**Read those intervals, not the point estimates.** With 17 held-out drifters every rate
-here carries roughly a ±20-point interval. The honest claim is "this buys weeks of lead
-time on most drifters", not "82.4%".
+> **"You generated the data, so of course you detected it."** The generator is built to be
+> hostile, not convenient: non-drifters carry organic growth, category-specific weekday
+> seasonality and a portfolio-wide festival surge, and 17 of them are **confounders** —
+> merchants with genuine legitimate change, a real category pivot or a viral growth spike,
+> which *should* be hard and are counted as false positives when they fire. A separability
+> check run **before any detector existed** established that `prohibited_category` drift
+> sits at a 1.12 volume ratio, *inside* the non-drifter range, so volume alone cannot catch
+> it — and the ablation below confirms that prediction. Full treatment:
+> [docs/DATA_PLAN.md](docs/DATA_PLAN.md).
+
+**Read the intervals, not the point estimates.** With 17 held-out drifters every rate here
+carries roughly a ±20-point interval. The honest claim is "this buys weeks of warning on
+most drifters", not "82.4%".
 
 | Drift type | Caught | Median lead | 95% CI |
 |---|---|---|---|
@@ -56,11 +180,12 @@ Development split: 19/27 caught (70.4%), median lead 34.0 d, FP 8.6% (9/105). St
 across drift types and confounders. Held-out scores *higher* than development — that is
 small-sample noise (z = 0.89), not a result.
 
-Two limitations are named rather than buried, both in
-[docs/EVALUATION.md](docs/EVALUATION.md): the **false-positive budget is not a guarantee**
-(dev 8.6% vs held-out 12.7%; the constraint bounds a point estimate, not a population
-rate), and **one catch had only a 4-day lead** against a 72-hour clock, which is why the
-`> 7 days` row is reported alongside the median.
+Two of these get a named section of their own in
+[docs/EVALUATION.md](docs/EVALUATION.md) rather than a footnote: the **false-positive
+budget is not a guarantee** (dev 8.6% vs held-out 12.7%; the constraint bounds a point
+estimate, not a population rate), and **one catch had only a 4-day lead** against a
+72-hour clock, which is why the `> 7 days` row is reported alongside the median. Six
+more are listed under [Honest limitations](#honest-limitations) below.
 
 ### The floor: no content signal
 
@@ -80,16 +205,20 @@ False-positive rate            8/71         11.3%   95% CI  5.8-20.7
 That is the floor this system operates at using **only signals derivable from amount,
 timing and counterparty identifiers**, which every PA has for every transaction.
 `third_party_layering` barely moves (7/7 to 6/7) and `bust_out` not at all (3/5 to 3/5), but
-`prohibited_category` collapses from 4/5 to **0/5** — that threat model is carried entirely
-by content. Reproduce with `python run_all.py --ablate-content`; full tables and the
-per-class reading are in [docs/EVALUATION.md](docs/EVALUATION.md).
+`prohibited_category` collapses from 4/5 to **0/5** — exactly as the pre-registered
+separability check predicted. Reproduce with `python run_all.py --ablate-content`; full
+tables in [docs/EVALUATION.md](docs/EVALUATION.md).
+
+The median *rises* under ablation, 32.5 to 36.0 days. That is survivorship, not
+improvement: the cases that still fire are the strongly corroborated ones, and those were
+always the ones that fired early. Read the catch rate.
 
 ---
 
 Descriptor classification ran on **Gemini 3.5 Flash: 63/63 correct (100%), including all
-8 restricted descriptors.** The deterministic fallback lexicon scores 51/63 (81.0%) and
-5/8 restricted, so the LLM is carrying real weight on the content signal rather than
-decorating the pipeline.
+8 restricted descriptors.** The deterministic fallback lexicon scores 51/63 (81.0%) and 5/8
+restricted, so the LLM is carrying real weight on the content signal rather than decorating
+the pipeline.
 
 ---
 
@@ -159,18 +288,7 @@ score *believable* — the ones a reviewer would try to break:
 
 ---
 
-## What it does
-
-```
-generate.py  →  synthetic portfolio: 220 merchants, 1.03M UPI transactions,
-                44 drifters, 17 confounders, ground truth held back
-signals.py   →  4 independent walk-forward signal families
-trigger.py   →  explicit two-branch rule (no composite score, no black box)
-casefile.py  →  structured audit case file + Gemini narrative
-evaluate.py  →  dev/held-out split, lead-time and false-positive-cost reporting
-```
-
-### Architecture
+## Architecture
 
 ![DriftWatch architecture](docs/architecture.svg)
 
@@ -229,16 +347,7 @@ The dashed edge is the whole evaluation argument: `ground_truth.csv` is written 
 generator and read by `evaluate.py` alone. No signal, no trigger, and no case file can
 see `T0` or `T_lag`. A test enforces this by scanning the package source.
 
-### The four signals
-
-| Signal | Family | What it measures |
-|---|---|---|
-| `category_mismatch` | content | Excess share of transactions whose descriptor implies a category other than the declared one |
-| `ticket_psi` | distribution | PSI of trailing ticket sizes vs the merchant's own 30-day baseline |
-| `velocity_peer_z` | velocity | Growth ratio, robust-z-scored **cross-sectionally against the portfolio that same day** |
-| `network_overlap` | network | Payer-VPA population overlap with another merchant + shared settlement accounts |
-
-### Three design decisions worth arguing about
+## Three design decisions worth arguing about
 
 **Velocity is peer-relative.** During Diwali every merchant ramps. An absolute detector
 fires on the whole portfolio and gets switched off within a week. DriftWatch scores each

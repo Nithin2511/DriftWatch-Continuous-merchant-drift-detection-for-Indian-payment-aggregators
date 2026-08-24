@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, AlertCircle, ShieldAlert, CheckCircle, Clock, ArrowUpRight, Network, FileText, ChevronRight, UserCheck, AlertTriangle } from 'lucide-react';
+import { Search, Clock, FileText, AlertTriangle } from 'lucide-react';
 import { casesData } from '../data/casesData';
 import { evaluationData } from '../data/evaluationData';
 

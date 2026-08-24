@@ -165,6 +165,18 @@ def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
     `signals` selects the participating families. The ablation passes SIGNALS_NO_CONTENT,
     which drops the content grid axis entirely rather than searching a threshold for a
     family that is not in play.
+
+    `fp_budget` selects what `max_fp_rate` constrains:
+
+      "point" (default, and the headline configuration) -- the dev false-positive POINT
+        ESTIMATE. Conventional, but it bounds nothing about the population rate: on 105
+        dev non-drifters an 8.6% estimate carries a 95% interval reaching 15.5%.
+      "upper" -- the upper Wilson bound, which is what actually gives an operator a
+        guarantee. On this data no grid point satisfies it (0 of 72), because a 10% upper
+        bound needs <=4/105 dev false positives and the grid floor is 6/105.
+
+    "upper" exists as sensitivity analysis and its output must never be quoted as the
+    system's result. See docs/EVALUATION.md.
     """
     signals = signals or SIGNALS
     if fp_budget not in ("point", "upper"):

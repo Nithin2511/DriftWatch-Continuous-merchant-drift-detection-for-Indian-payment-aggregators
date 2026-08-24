@@ -96,7 +96,8 @@ produces behavioural consequences of drift; no evasion logic, no threshold-probi
 ## Provider
 
 **Google Gemini (`gemini-3.5-flash`), by the project owner's decision** — chosen for
-prototyping. `driftwatch/llm.py` is Gemini-only; there is no Claude/Anthropic path. The
+prototyping. `driftwatch/llm.py` targets Gemini exclusively -- one provider, one code
+path, no abstraction layer over alternatives. The
 model ID is pinned rather than `-latest`, because a floating alias would silently
 invalidate the numbers in EVALUATION.md. Verified against Google's model list:
 `models/gemini-3.5-flash`, displayName "Gemini 3.5 Flash".

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Users, Flame, ShieldAlert, CheckCircle2, ChevronRight, BarChart3, HelpCircle } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { evaluationData } from '../data/evaluationData';
 
 export default function ThreatModelsTab({ setActiveTab, setSelectedCaseId }) {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, Scale, TrendingUp, AlertCircle, Info, Calculator, ShieldCheck } from 'lucide-react';
+import { Calculator } from 'lucide-react';
 import { evaluationData } from '../data/evaluationData';
 
 export default function EconomicsTab() {

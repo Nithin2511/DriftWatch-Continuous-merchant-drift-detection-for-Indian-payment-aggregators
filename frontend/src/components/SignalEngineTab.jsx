@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, TrendingUp, Network, BarChart2, ShieldCheck, Check, AlertCircle, Info } from 'lucide-react';
+import { Check, AlertCircle } from 'lucide-react';
 import { evaluationData } from '../data/evaluationData';
 
 export default function SignalEngineTab() {

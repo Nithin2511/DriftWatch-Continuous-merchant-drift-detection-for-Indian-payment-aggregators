@@ -5,8 +5,10 @@ The LLM is used for exactly two things, both of which are genuine language probl
 
   1. classify_descriptors() -- map free-text transaction descriptors to an implied
      merchant category. This is a text-understanding task.
-  2. write_narrative()      -- turn a fired trigger's numeric evidence into prose a
-     compliance reviewer can act on.
+  2. write_narratives()     -- turn fired triggers' numeric evidence into prose a
+     compliance reviewer can act on. This is the primary path and it is BATCHED:
+     eight cases per request. write_narrative() handles a single case and exists as
+     the per-case fallback when a batch drops one.
 
 The model is NEVER asked whether a merchant is fraudulent. The fire/no-fire decision is
 made in trigger.py by quantitative signals against thresholds calibrated on the
@@ -18,9 +20,16 @@ pipeline is reproducible by anyone cloning the repo. Fallback mode is always LAB
 the output -- it is never silently substituted, because a case file that does not say how
 it was produced is not auditable.
 
-Cost note: descriptor classification is called once per unique descriptor string, not once
-per transaction. Over 1.03M transactions there are 63 unique descriptors, so the classifier
-is O(vocabulary), not O(volume). That is also how you would build it in production.
+Call budget. Both paths are deliberately sub-linear in the thing they describe:
+
+  - classification is O(vocabulary), not O(volume): one call covers all 63 unique
+    descriptors across 1.03M transactions, rather than one call per transaction.
+  - narratives are O(batches), not O(cases): 23 case files cost 3 requests, not 23.
+
+Together a full run costs 4 requests instead of 24. That is not a micro-optimisation --
+the Gemini free tier enforces GenerateRequestsPerDayPerProjectPerModel = 20, so the
+one-call-per-case shape could not complete a run at all, and no amount of retrying fixes
+a daily cap. It is also how you would build it against a metered API in production.
 """
 from __future__ import annotations
 
