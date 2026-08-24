@@ -54,6 +54,13 @@ Selected thresholds: `category_mismatch` 0.190 (p91), `ticket_psi` 0.25, `veloci
 
 ## Results
 
+**This is the system's result: 82.4% catch, 12.7% false positives, 32.5-day median lead,
+on held-out, scored once.** Two other configurations appear later in this document — a
+no-content *ablation* and an upper-bound-budget *sensitivity analysis*. Neither is an
+alternative headline. Both exist to show what happens under a stated stress, and both are
+labelled as such wherever they appear.
+
+
 | | Development (132) | **Held-out (88)** |
 |---|---|---|
 | Drifters | 27 | 17 |
@@ -155,9 +162,24 @@ implemented (`fp_budget="upper"` in `calibrate()`), and on this data it is infea
 | Dev FPs needed for a 10% upper bound at n=105 | ≤ 4/105 (≤3.8%) |
 | Lowest dev FP any grid point reaches | 6/105 (5.7%, upper bound 11.9%) |
 
-Pushed as close as the grid allows, held-out FP does fall to 9.9% (7/71) — but held-out
-catch drops from **82.4% to 52.9%** and dev catch from 70.4% to 55.6%. Buying a defensible
-budget costs roughly a third of the detections.
+### Sensitivity analysis, not an alternative result
+
+Pushed as close to an upper-bound budget as the grid allows, held-out FP does fall to
+**9.9% (7/71)** — but held-out catch drops from 82.4% to **52.9% (9/17)** and dev catch from
+70.4% to 55.6%. Buying a defensible-sounding budget costs roughly a third of the detections,
+for a number that still is not guaranteed.
+
+**This 9.9% is a sensitivity result and must never be quoted as the system's
+false-positive rate.** The headline configuration is the point-estimate budget, and it is
+the defensible choice precisely because the measurement above shows no grid point does
+better without gutting detection. A 52.9% catch rate is a worse product than a 12.7%
+false-positive rate is a problem.
+
+> **Do not confuse this with the ablation.** Both land on 9/17 caught — coincidentally the
+> same count — but they are different experiments. The **ablation** removes the content
+> *signal family* and keeps the point-estimate budget (held-out FP **11.3%**, 8/71). This
+> **sensitivity analysis** keeps all four families and changes the *budget rule* (held-out
+> FP **9.9%**, 7/71). Tell them apart by the false-positive figure.
 
 **What this means operationally.** Three honest statements, in order of usefulness:
 
@@ -191,6 +213,11 @@ the content family is unavailable?" That is a number, not a caveat:
 ```bash
 python run_all.py --ablate-content     # writes out-ablation/
 ```
+
+> Not to be confused with the upper-bound *sensitivity analysis* above, which also lands
+> on 9/17 caught. That one keeps all four families and changes the budget rule; this one
+> removes a family and keeps the budget rule. Distinguishing figure: ablation FP is 11.3%,
+> sensitivity FP is 9.9%.
 
 The content family is **removed from the signal set**, not zeroed. Branch A still requires
 two *distinct* families; three remain (distribution, velocity, network), all derivable from

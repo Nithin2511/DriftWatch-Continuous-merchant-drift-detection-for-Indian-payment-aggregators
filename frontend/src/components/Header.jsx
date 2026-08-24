@@ -49,7 +49,7 @@ export default function Header({ activeTab, setActiveTab }) {
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-white tracking-tight">DriftWatch</h1>
                 <span className="text-[10px] font-mono font-medium uppercase tracking-wide bg-slate-800/80 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                  Synthetic replay &middot; seed 20260823
+                  Synthetic replay &middot; seed 20260823 &middot; full signal set
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">

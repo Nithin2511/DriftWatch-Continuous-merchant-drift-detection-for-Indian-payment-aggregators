@@ -31,7 +31,8 @@ leading behavioural signals and is graded on **how many days of warning it bough
 
 ## Headline result
 
-Held-out split (40% of merchants, scored exactly once, thresholds never tuned on it):
+Held-out split (40% of merchants, scored exactly once, thresholds never tuned on it).
+**This is the system's result.** One variant appears below it — a no-content ablation — which is a stress test, not an alternative headline.
 
 ```
 Median LEAD TIME BOUGHT        32.5 days    (IQR 20-40, range 4-68)
@@ -69,10 +70,11 @@ settlement account, but item descriptors exist only if the merchant passes them,
 long tail does not. So the result is reported with that family removed as well:
 
 ```
-Without the content family (3 families, fully recalibrated):
+STRESS TEST -- not the headline. Content family removed, fully recalibrated:
 Median LEAD TIME BOUGHT        36.0 days    (IQR 22-45)
-Caught before lagging evidence 9/17         (52.9%, 95% CI 31.0-73.8)
-False-positive rate            11.3%        (8/71)
+Caught before lagging evidence 9/17         52.9%   95% CI 31.0-73.8
+  ... with lead > 7 days       8/17         47.1%   95% CI 26.2-69.0
+False-positive rate            8/71         11.3%   95% CI  5.8-20.7
 ```
 
 That is the floor this system operates at using **only signals derivable from amount,

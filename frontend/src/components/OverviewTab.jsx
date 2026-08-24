@@ -84,6 +84,9 @@ export default function OverviewTab({ setActiveTab, setSelectedCaseId }) {
                 </span>
               </h3>
               <p className="text-xs text-slate-400 mt-1">
+                Full signal set, false-positive budget on the point estimate — the system's
+                headline configuration. The no-content ablation and the upper-bound-budget
+                sensitivity analysis are in docs/EVALUATION.md and are not shown here.
                 Thresholds calibrated on development split only. Held-out split touched exactly once.
                 With {h.n_drifters} held-out drifters every rate here carries a ±20-point 95% interval.
               </p>

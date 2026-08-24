@@ -13,6 +13,12 @@ validate that" is worse than no number.
 
 ## Current numbers — held-out, scored once
 
+**The headline is the full-signal, point-estimate-budget run: 82.4% catch, 12.7% FP,
+32.5 d median lead.** The ablation column is a stress test. A third configuration
+(upper-bound FP budget) exists only as sensitivity analysis in EVALUATION.md and must never
+be quoted as the result — note it also lands on 9/17, so tell it apart from the ablation by
+its false-positive figure (sensitivity 9.9%, ablation 11.3%).
+
 Regenerate with `python run_all.py`; never hand-edit these into docs.
 
 | | Full (4 families) | No content (3 families) |
