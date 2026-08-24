@@ -15,6 +15,7 @@ venv/
 /data/
 /data_verify/
 /out/
+/out-ablation/
 /out_verify/
 
 # --- Frontend ---
