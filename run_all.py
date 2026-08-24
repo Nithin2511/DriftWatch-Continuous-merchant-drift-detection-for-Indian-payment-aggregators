@@ -78,7 +78,8 @@ def main():
     from driftwatch.casefile import write_cases
     hits = pd.read_json(out / "held_out_triggers.json")
     print(f"[5/5] synthesising {len(hits)} case files ...")
-    prov = dict(descriptor_classifier_mode=mode,
+    from driftwatch.llm import MODEL as LLM_MODEL
+    prov = dict(descriptor_classifier_mode=mode, llm_model=LLM_MODEL,
                 variant=res["variant"], signals_used=res["signals_used"],
                 calibration="development split (60%); held-out untouched until final scoring",
                 data="synthetic", generator_seed=meta["seed"])

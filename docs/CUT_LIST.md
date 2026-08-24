@@ -6,7 +6,7 @@ What was cut, and why. Cutting from P2 first, then P1, never from P0 — as plan
 
 Synthetic generator with dual ground truth → four walk-forward signals → two-branch rule →
 Gemini case-file synthesis → walk-forward lead-time evaluation on a held-out split → CLI
-demo. All of it runs from `python run_all.py` in 10-25 minutes, depending on machine.
+demo. All of it runs from `python run_all.py`: about 3 minutes of compute, plus paced LLM calls.
 
 ## Delivered from P1
 

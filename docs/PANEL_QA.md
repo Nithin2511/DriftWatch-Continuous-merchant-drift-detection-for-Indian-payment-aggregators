@@ -89,8 +89,15 @@ Nine false positives across 71 merchants over roughly five months. That is on th
 one new false case per merchant every three years, which is a very different operational
 picture from "12.7% of the book, today."
 
-**Second, the FP budget is an input, not a property.** `calibrate()` takes `max_fp_rate` as
-a parameter and the grid search respects it as a hard constraint. You set it from analyst
+**Second, the FP budget is an input, not a property — and it is weaker than it sounds.**
+`calibrate()` takes `max_fp_rate` and the grid respects it as a hard constraint *on the
+development split*. It constrains a point estimate over 105 non-drifters, which bounds
+nothing about the population rate: dev 8.6% carries a 95% interval of 4.6–15.5%, and
+held-out's 12.7% sits inside it. Constraining the upper bound instead is implemented and
+infeasible on this data (0 of 72 grid points qualify). Full treatment, including what
+forcing it would cost, is in
+[EVALUATION.md → Named limitation](EVALUATION.md#named-limitation-the-false-positive-budget-is-not-a-guarantee).
+The original point stands underneath all that: You set it from analyst
 headcount and work backwards. Tightening it trades lead time, and the trade is visible in
 the calibration trials the harness records.
 

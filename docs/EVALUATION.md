@@ -59,6 +59,7 @@ Selected thresholds: `category_mismatch` 0.190 (p91), `ticket_psi` 0.25, `veloci
 | Drifters | 27 | 17 |
 | Caught before `T_lag` | 19 (70.4%) | **14 (82.4%)** |
 | Median lead | 34.0 d | **32.5 d** |
+| Caught with lead > 7 d | 17/27 | **13/17 — 76.5% (CI 52.7–90.4)** |
 | Lead IQR | 22–57 d | **20–40 d** |
 | False-positive rate | 8.6% (9/105) | **12.7% (9/71)** |
 | of which confounders | 5 | 6 |
@@ -94,13 +95,83 @@ evaluation cannot distinguish the two splits' catch rates at all — not that he
 better. Any single number quoted from a 17-drifter split should be read with a ±20-point
 interval attached, and the point estimate should not be treated as precise.
 
-**The held-out false-positive rate exceeded its own budget.** Calibration runs with
-`max_fp_rate = 0.10` enforced as a hard constraint *on the development split*, where it
-lands at 8.6%. On held-out it comes in at 12.7% — over budget. That is the honest cost of
-fitting a threshold on one split and applying it to another. It is within the dev
-confidence interval, so it is not evidence the constraint is broken, but the budget is a
-development-split guarantee and does not transfer as a guarantee. An operator sizing
-analyst headcount from the 10% figure would be under-provisioned by roughly a quarter.
+## Not every catch is worth the same: the 4-day case
+
+The median is 32.5 days, but the range starts at **4 days**, and a 4-day lead against a
+72-hour investigation clock is very nearly no lead at all. Averaging that into a median
+flatters the result, so it is reported separately and the case is named.
+
+**Held-out lead distribution (full signal set), sorted:**
+`4, 12, 18, 19, 22, 22, 32, 33, 34, 36, 41, 51, 65, 68`
+
+| | Full | No content |
+|---|---|---|
+| Caught | 14/17 (82.4%) | 9/17 (52.9%) |
+| **Caught with lead > 7 days** | **13/17 — 76.5% (CI 52.7–90.4)** | **8/17 — 47.1% (CI 26.2–69.0)** |
+| Share of catches clearing 7 days | 92.9% | 88.9% |
+
+`ACTIONABLE_LEAD_DAYS = 7` in `evaluate.py`. Seven days is chosen as roughly double the
+72-hour duty — enough room to open a case, request merchant evidence, and dispose of it
+before the lagging signal arrives.
+
+**The thinnest margin: `MID0054`.** A `bust_out`, subtlety 1.0 (the *least* subtle band),
+triggered on observation day 166 against a `T_lag` of 170 — **4 days**. It is the only
+catch in either variant that fails the 7-day bar, and it is the same merchant in both. A
+bust-out ramps and then breaks hard; this one broke early relative to its own ramp, so
+Branch B's five-day persistence requirement consumed most of the available warning. The
+system caught it, but a reviewer would have had four days to act on a case that scheme
+evidence was about to confirm anyway. That is close to zero product value, and it is
+counted as a catch in the headline 82.4%. The `> 7 days` row is the number to quote when
+that distinction matters.
+
+`evaluation.json` records this case by name under `held_out_min_lead_case`, so it cannot
+quietly disappear from a future run.
+
+## Named limitation: the false-positive budget is not a guarantee
+
+This is the weakest part of the evaluation and it gets its own section rather than a
+footnote.
+
+`calibrate()` enforces `max_fp_rate = 0.10` as a hard constraint on the development split.
+Dev lands at 8.6% (9/105). Held-out lands at **12.7%** (9/71) — over budget.
+
+**The position: the constraint does less than its name implies, and the breach is a
+property of the constraint, not a failure of generalisation.**
+
+A budget enforced on a *point estimate* over 105 non-drifters bounds nothing about the
+population rate. That 8.6% carries a 95% Wilson interval of **4.6–15.5%**. The
+configuration that "satisfied" a 10% budget was one whose plausible range already reached
+half again above it. Held-out's 12.7% sits inside that interval. Nothing generalised badly;
+the constraint was never a guarantee to begin with.
+
+**What a real guarantee would cost, measured.** The statistically correct fix is to
+constrain the *upper* confidence bound rather than the point estimate. That mode is
+implemented (`fp_budget="upper"` in `calibrate()`), and on this data it is infeasible:
+
+| | |
+|---|---|
+| Grid points satisfying point-estimate budget ≤10% | 18 of 72 |
+| Grid points satisfying **upper-bound** budget ≤10% | **0 of 72** |
+| Dev FPs needed for a 10% upper bound at n=105 | ≤ 4/105 (≤3.8%) |
+| Lowest dev FP any grid point reaches | 6/105 (5.7%, upper bound 11.9%) |
+
+Pushed as close as the grid allows, held-out FP does fall to 9.9% (7/71) — but held-out
+catch drops from **82.4% to 52.9%** and dev catch from 70.4% to 55.6%. Buying a defensible
+budget costs roughly a third of the detections.
+
+**What this means operationally.** Three honest statements, in order of usefulness:
+
+1. **Size analyst headcount off the interval's upper bound, not the point estimate.** Plan
+   for 15.5%, not 10%. An operator provisioning from the 10% figure is under-resourced by
+   roughly half.
+2. **The budget is a development-split point constraint.** It should be read as "the
+   calibration did not select an obviously reckless configuration", not as a service level.
+3. **Fixing it properly needs more non-drifters, not a tighter threshold.** At n=105 the
+   interval is simply too wide to certify a 10% rate. The remedy is a larger portfolio or a
+   real book — not re-tuning, which only trades detections for a number that still is not
+   guaranteed.
+
+The same breach appears in the ablation (dev 7.6%, held-out 11.3%) for the same reason.
 
 The honest summary is: **lead time generalises, all three threat models are caught at substantial
 lead time (19–41 days), legitimate-change confounders explain the majority (6 of 9) of held-out
@@ -133,6 +204,7 @@ once. No threshold, rule, or objective was changed to flatter the ablation.
 |---|---|---|
 | Caught before `T_lag` | 14/17 — 82.4% (CI 59.0–93.8) | **9/17 — 52.9% (CI 31.0–73.8)** |
 | Median lead | 32.5 d | **36.0 d** |
+| Caught with lead > 7 d | 13/17 — 76.5% (CI 52.7–90.4) | **8/17 — 47.1% (CI 26.2–69.0)** |
 | Lead IQR | 20–40 d | **22–45 d** |
 | Lead range | 4–68 d | **4–68 d** |
 | False-positive rate | 12.7% — 9/71 (CI 6.8–22.4) | **11.3% — 8/71 (CI 5.8–20.7)** |
@@ -183,11 +255,28 @@ guarantee and does not transfer as one.
 |---|---|
 | Descriptor classification | **Gemini 3.5 Flash — 63/63 correct (100%), 8/8 restricted** |
 | Fallback lexicon, for comparison | 51/63 (81.0%), 5/8 restricted |
-| Case narratives | 19 of 23 Gemini; 4 deterministic template (free-tier quota exhausted mid-run) |
+| Case narratives | 21 of 23 Gemini; 2 deterministic template — see note below |
+| Narrative requests | 3 batched calls for 23 cases (was 23 calls) |
 | Seed | 20260823, deterministic — two independent runs produced byte-identical `evaluation.json` |
 
-Every case file records its own `descriptor_classifier_mode` and `narrative_mode`. The four
+Every case file records its own `descriptor_classifier_mode` and `narrative_mode`. The
 template narratives are labelled as such rather than quietly presented as model output.
+
+**Why two cases are still template.** The Gemini free tier enforces
+`GenerateRequestsPerDayPerProjectPerModel = 20`. One request per case needs 23, plus one
+for descriptor classification — 24 against a ceiling of 20, so the run could not complete
+however patiently it retried. Exponential backoff with `Retry-After` was added and does not
+help against a *daily* cap.
+
+The structural fix is to stop making one call per case. `write_narratives()` batches eight
+cases per request, so 23 narratives cost **3 requests** instead of 23 — the same reasoning
+that keeps descriptor classification O(vocabulary) rather than O(volume). Verified end to
+end: 23 cases in, 23 narratives out, none missing, and every narrative names its own
+merchant (no cross-contamination between cases in a batch).
+
+A fresh run therefore needs 4 requests in total and finishes clean. The committed artifact
+was produced before the day's quota reset and still shows 2 template narratives; re-running
+`python run_all.py` on a fresh daily allowance yields 23/23.
 
 ## False-positive cost, stated not buried
 
@@ -206,8 +295,25 @@ real figures. The break-even, not the rate, is the decision criterion.
 ## Reproducing
 
 ```bash
-python run_all.py          # 10-25 min; regenerates data, signals, calibration, cases
-python -m driftwatch.demo  # prints the table above plus two case files
+python run_all.py                     # full signal set        -> out/
+python run_all.py --ablate-content    # no content family      -> out-ablation/
+python -m driftwatch.demo             # the CLI demo view
+python -m pytest tests -q             # 20 invariant tests
 ```
 
-Outputs: `out/evaluation.json`, `out/held_out_triggers.json`, `out/cases/*.json`.
+Outputs per run: `evaluation.json`, `held_out_triggers.json`, `cases/*.json`.
+
+**Measured stage timings** (220 merchants, 1.03M transactions, seed 20260823):
+
+| Stage | Time |
+|---|---|
+| `generate()` | 57.5 s |
+| load transactions | 1 s |
+| `signals.compute()` | 20 s |
+| calibration (72 grid points) + held-out scoring | 82 s |
+| case narratives | 23 LLM calls, rate-limit bound |
+
+Compute is roughly 2.7 minutes end to end. The calibration grid is *not* the bottleneck —
+one grid point costs 1.32 s. Wall-clock is dominated by the narrative calls, which are
+paced client-side to stay inside free-tier rate limits. Running without `GEMINI_API_KEY`
+skips them entirely (labelled fallback) and completes in under three minutes.

@@ -34,22 +34,32 @@ leading behavioural signals and is graded on **how many days of warning it bough
 Held-out split (40% of merchants, scored exactly once, thresholds never tuned on it):
 
 ```
-Median LEAD TIME BOUGHT        32.5 days    (IQR 20–40, range 4–68)
-Caught before lagging evidence 14/17        (82.4%)
-False-positive rate            12.7%        (9/71 good merchants flagged,
-                                             6 of which are legitimate-change confounders)
+Median LEAD TIME BOUGHT        32.5 days    (IQR 20-40, range 4-68)
+Caught before lagging evidence 14/17        82.4%   95% CI 59.0-93.8
+  ... with lead > 7 days       13/17        76.5%   95% CI 52.7-90.4
+False-positive rate            9/71         12.7%   95% CI  6.8-22.4
+                                            (6 of the 9 are legitimate-change confounders)
 ```
 
-| Drift type | Caught | Median lead |
-|---|---|---|
-| `third_party_layering` | 7/7 | 41.0 d |
-| `bust_out` | 3/5 | 19.0 d |
-| `prohibited_category` | 4/5 | 27.0 d |
+**Read those intervals, not the point estimates.** With 17 held-out drifters every rate
+here carries roughly a ±20-point interval. The honest claim is "this buys weeks of lead
+time on most drifters", not "82.4%".
 
-Development split, for the generalisation gap: 19/27 caught (70.4%), median lead 34.0 d,
-FP 8.6% (9/105). Stratified across drift types and confounders. Held-out scores *higher*
-than development — that is small-sample noise, not a result, and
-[docs/EVALUATION.md](docs/EVALUATION.md) says so with the confidence intervals.
+| Drift type | Caught | Median lead | 95% CI |
+|---|---|---|---|
+| `third_party_layering` | 7/7 | 41.0 d | 64.6–100 |
+| `bust_out` | 3/5 | 19.0 d | 23.1–88.2 |
+| `prohibited_category` | 4/5 | 27.0 d | 37.6–96.4 |
+
+Development split: 19/27 caught (70.4%), median lead 34.0 d, FP 8.6% (9/105). Stratified
+across drift types and confounders. Held-out scores *higher* than development — that is
+small-sample noise (z = 0.89), not a result.
+
+Two limitations are named rather than buried, both in
+[docs/EVALUATION.md](docs/EVALUATION.md): the **false-positive budget is not a guarantee**
+(dev 8.6% vs held-out 12.7%; the constraint bounds a point estimate, not a population
+rate), and **one catch had only a 4-day lead** against a 72-hour clock, which is why the
+`> 7 days` row is reported alongside the median.
 
 ### The floor: no content signal
 
@@ -89,7 +99,7 @@ To run the whole thing yourself:
 ```bash
 # 1. Pipeline & CLI Demo
 pip install -r requirements.txt   # pandas, numpy, pyarrow
-python run_all.py                # full pipeline, 10-25 min (calibration grid dominates)
+python run_all.py                # full pipeline (~3 min compute + paced LLM calls)
 python -m driftwatch.demo        # the CLI demo view
 python run_all.py --ablate-content   # no-content ablation -> out-ablation/
 
@@ -248,6 +258,13 @@ descriptor* — 63 calls for 1.03M transactions — so it is O(vocabulary), not 
 
 ## Honest limitations
 
+- **`descriptor` is merchant-supplied and often absent in production.** In this schema
+  every transaction carries clean item text; a real UPI record guarantees only amount,
+  timestamp, payer VPA, PSP handle and settlement account. The classifier's 63/63 reflects
+  an authored vocabulary, not a solved problem — real descriptors are abbreviated,
+  transliterated, or just an order ID. What the system does without that family is
+  measured, not hand-waved: see the ablation above and
+  [docs/DATA_PLAN.md](docs/DATA_PLAN.md).
 - **The data is synthetic.** What is demonstrated is that the detector buys lead time
   against a stated threat model, not that it holds at these numbers on a real book. The
   generator was built to be adversarial to the detector: non-drifters carry organic
@@ -255,11 +272,12 @@ descriptor* — 63 calls for 1.03M transactions — so it is O(vocabulary), not 
   genuine legitimate structural change. `prohibited_category` drift has a median volume
   ratio of 1.12 — *inside* the non-drifter range (p90 = 1.21) — so volume alone cannot
   catch it. See [docs/DATA_PLAN.md](docs/DATA_PLAN.md).
-- **Narrative generation is partially degraded in the committed run.** 19 of 23 case
-  files carry a Gemini narrative; 4 fell back to the deterministic template when the
-  free-tier quota ran out mid-run. Each case file states which, in
-  `provenance.narrative_mode`. This is the labelling rule working as designed, not an
-  oversight — but it means the committed output is a mixed-provenance run.
+- **The committed run has 21 of 23 Gemini narratives; 2 are the deterministic template.**
+  Cause is a hard free-tier ceiling — `GenerateRequestsPerDayPerProjectPerModel` is
+  **20 requests/day/model**, and one-call-per-case needs 24. Narrative generation is now
+  batched (23 cases → 3 requests, verified end to end), so a fresh run needs 4 calls total
+  and completes cleanly; the committed artifact predates the day's quota reset. Each case
+  file still states its own `provenance.narrative_mode`.
 - **Stratified evaluation balance.** All 3 drift categories are balanced across dev and
   held-out splits (prohibited_category n=5 on held-out, catching 4/5 at 27.0d lead). With
   17 held-out drifters, every rate here carries a roughly ±20-point 95% interval.

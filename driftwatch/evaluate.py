@@ -40,6 +40,12 @@ from .trigger import SIGNALS, SIGNALS_NO_CONTENT, run_triggers
 COST_FALSE_POSITIVE_INR = 12_000    # analyst review + merchant relationship friction
 COST_MISSED_DRIFT_INR = 850_000     # scheme assessment + chargeback write-off + remediation
 
+#: A catch is "actionable" only if it leaves real room to work. The SMMP duty is to
+#: investigate within 72 hours; a 4-day lead means the investigation and the lagging
+#: evidence land in the same week, which is not the same product as a 40-day warning.
+#: Reported alongside the median so marginal catches are not averaged into it.
+ACTIONABLE_LEAD_DAYS = 7
+
 
 def wilson_ci(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     """Wilson score interval for a binomial proportion, as a percentage pair.
@@ -108,6 +114,7 @@ def score(fired: pd.DataFrame, truth: pd.DataFrame, subset: set[str]) -> dict:
     fp_ids = [m for m in non.index if m in det]
     fp_conf = [m for m in fp_ids if bool(non.at[m, "confounder"])]
 
+    n_actionable = sum(1 for l in leads if l > ACTIONABLE_LEAD_DAYS)
     n_d, n_n = len(drifters), len(non)
     catch = caught / n_d if n_d else 0.0
     fpr = len(fp_ids) / n_n if n_n else 0.0
@@ -125,6 +132,11 @@ def score(fired: pd.DataFrame, truth: pd.DataFrame, subset: set[str]) -> dict:
         min_lead_days=int(min(leads)) if leads else 0,
         max_lead_days=int(max(leads)) if leads else 0,
         catch_rate_ci=wilson_ci(caught, n_d),
+        n_actionable=n_actionable,
+        actionable_share_of_caught=(n_actionable / caught if caught else 0.0),
+        actionable_rate_of_drifters=(n_actionable / n_d if n_d else 0.0),
+        actionable_rate_ci=wilson_ci(n_actionable, n_d),
+        min_actionable_lead_days=ACTIONABLE_LEAD_DAYS,
         false_positive_rate=fpr, n_false_positives=len(fp_ids),
         false_positive_rate_ci=wilson_ci(len(fp_ids), n_n),
         n_fp_confounders=len(fp_conf),
@@ -143,7 +155,8 @@ def score(fired: pd.DataFrame, truth: pd.DataFrame, subset: set[str]) -> dict:
 
 def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
               max_fp_rate: float = 0.10,
-              signals: list[str] | None = None) -> tuple[dict, dict, list]:
+              signals: list[str] | None = None,
+              fp_budget: str = "point") -> tuple[dict, dict, list]:
     """Grid-search q on the DEVELOPMENT split only.
 
     Objective: maximise TOTAL lead-days bought, subject to dev FP rate <= max_fp_rate.
@@ -154,6 +167,8 @@ def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
     family that is not in play.
     """
     signals = signals or SIGNALS
+    if fp_budget not in ("point", "upper"):
+        raise ValueError("fp_budget must be 'point' or 'upper'")
     use_content = "category_mismatch" in signals
     dsig = sig[sig.merchant_id.isin(dev)]
     # content: portfolio quantile (no canonical scale). A single sentinel when ablated,
@@ -185,7 +200,16 @@ def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
                     trials.append(dict(q=q, thr=thr, catch=s["catch_rate"],
                                        fpr=s["false_positive_rate"],
                                        lead=s["median_lead_days"], total_lead=total_lead))
-                    if s["false_positive_rate"] > max_fp_rate:
+                    # 'point' constrains the dev point estimate -- the conventional
+                    # choice, and the one the headline numbers use. It does NOT bound the
+                    # population rate: a point estimate on 105 non-drifters carries an
+                    # interval wide enough to contain values well above the budget, which
+                    # is precisely why held-out breaches it. 'upper' constrains the upper
+                    # Wilson bound instead, which is the version that actually gives an
+                    # operator a guarantee. See docs/EVALUATION.md.
+                    observed = (s["false_positive_rate"] if fp_budget == "point"
+                                else s["false_positive_rate_ci"][1] / 100.0)
+                    if observed > max_fp_rate:
                         continue
                     key = (total_lead, s["catch_rate"])
                     if best is None or key > best:
@@ -197,7 +221,7 @@ def calibrate(sig: pd.DataFrame, truth: pd.DataFrame, dev: set[str],
 
 
 def main(datadir: str = "data", outdir: str = "out", max_fp_rate: float = 0.10,
-         ablate_content: bool = False) -> dict:
+         ablate_content: bool = False, fp_budget: str = "point") -> dict:
     """Calibrate on dev, score held-out once, write evaluation.json.
 
     ablate_content removes the content family (category_mismatch) from the signal set
@@ -212,7 +236,8 @@ def main(datadir: str = "data", outdir: str = "out", max_fp_rate: float = 0.10,
     signals = SIGNALS_NO_CONTENT if ablate_content else SIGNALS
     dev, hold = split_merchants(truth)
 
-    thr, q, trials = calibrate(sig, truth, dev, max_fp_rate=max_fp_rate, signals=signals)
+    thr, q, trials = calibrate(sig, truth, dev, max_fp_rate=max_fp_rate,
+                               signals=signals, fp_budget=fp_budget)
 
     dev_fired = run_triggers(sig[sig.merchant_id.isin(dev)], thr, signals)
     dev_res = score(dev_fired, truth, dev)
@@ -246,7 +271,7 @@ def main(datadir: str = "data", outdir: str = "out", max_fp_rate: float = 0.10,
 
     hold_fired.to_json(outdir / "held_out_triggers.json", orient="records", indent=2)
     result = dict(variant=("no_content_ablation" if ablate_content else "full"),
-                  signals_used=signals,
+                  signals_used=signals, fp_budget=fp_budget, max_fp_rate=max_fp_rate,
                   thresholds=thr, quantiles=q, n_dev=len(dev), n_held_out=len(hold),
                   development=dev_res, held_out=hold_res, held_out_by_type=by_type,
                   held_out_min_lead_case=earliest)

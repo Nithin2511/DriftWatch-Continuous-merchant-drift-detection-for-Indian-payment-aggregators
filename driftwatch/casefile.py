@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .llm import write_narrative
+from .llm import write_narrative, write_narratives
 from .signals import BASELINE_DAYS, CURRENT_WINDOW
 from .trigger import (EXTREME_MULT, MIN_FAMILIES, SUSTAIN_DAYS, TRIGGER_WINDOW,
                       recommended_action)
@@ -150,10 +150,34 @@ def write_cases(hits: pd.DataFrame, merchants: pd.DataFrame, txn: pd.DataFrame,
     # the whole point of emitting a case file.
     for stale in outdir.glob("DW-*.json"):
         stale.unlink()
-    cases = []
     rows = hits.to_dict("records")[: limit or len(hits)]
-    for hit in rows:
-        c = build_case(hit, merchants, txn, thresholds, provenance)
+
+    # Build every case WITHOUT a narrative first, then generate narratives in a handful of
+    # batched requests. One request per case needs 23 calls and cannot complete inside the
+    # free tier's 20-per-day ceiling, which is how a run ends up with a mix of model and
+    # template prose.
+    cases = [build_case(hit, merchants, txn, thresholds, provenance, with_narrative=False)
+             for hit in rows]
+
+    payloads = [{
+        "case_id": c["case_id"], "merchant_id": c["merchant_id"],
+        "declared_category": c["declared_category"], "trigger_day": c["trigger_day"],
+        "days_since_onboarding": c["days_since_onboarding"],
+        "signals_fired": c["signals_fired"], "supporting_data": c["supporting_data"],
+        "recommended_action": c["recommended_action"],
+        "branch": c["grounds_for_review"]["branch"],
+    } for c in cases]
+
+    generated, batch_mode = write_narratives(payloads)
+
+    for c, payload in zip(cases, payloads):
+        text = generated.get(c["case_id"])
+        if text:
+            c["narrative"], c["provenance"]["narrative_mode"] = text, batch_mode
+        else:
+            # Per-case fallback, labelled per case. The batch may drop individual cases;
+            # each one says for itself how it was produced.
+            c["narrative"], c["provenance"]["narrative_mode"] = write_narrative(payload)
         (outdir / f"{c['case_id']}.json").write_text(json.dumps(c, indent=2, default=str))
-        cases.append(c)
+
     return cases

@@ -18,6 +18,45 @@ Ground truth is never opened by the data, signal, trigger or case-file layers.
   `it_and_software`, `travel_agency`, `financial_services`, `education`), not raw MCCs
 - Ticket sizes lognormal per category, in INR
 
+## Where `descriptor` comes from, and why that matters
+
+This is the field a Razorpay risk engineer will ask about first, so it is worth being
+precise about what it is here and what it maps to in production.
+
+**In this schema.** Every synthetic transaction carries a `descriptor`: a short free-text
+item string such as `cotton kurta set`, `paneer butter masala`, or `saas seat licence`.
+There are 63 unique values across 1.03M transactions. `signals.py` maps each descriptor to
+an implied merchant category (via Gemini, with a deterministic lexicon fallback) and
+`category_mismatch` measures the excess share of transactions whose implied category is not
+the merchant's declared one.
+
+**In production.** There is no single guaranteed equivalent. A UPI transaction record
+reliably carries an amount, a timestamp, a payer VPA, a payer PSP handle, a settlement
+account, and merchant identifiers. Item-level text is *optional and merchant-supplied*:
+it may arrive as an order note, an invoice line, a payment-page description, or a merchant
+reference string — and for a large share of merchants it arrives as an order ID, a
+templated constant, or nothing at all. Coverage is best among large integrated merchants
+with structured catalogues and worst across exactly the long tail where drift risk
+concentrates. **We have not measured real-world population rates and do not assert one.**
+
+**The classifier scoring 63/63 is a property of the vocabulary, not evidence the problem is
+solved.** We authored `DESCRIPTORS` and `RESTRICTED_DESCRIPTORS` in `generate.py`, so every
+string is unambiguous by construction: `replica designer handbag` has exactly one defensible
+category. Real descriptors are abbreviated, misspelled, transliterated, bilingual, padded
+with SKU codes, or deliberately neutral — `ORDER 88213`, `PAYMENT`, `INV/2026/0412`. A 100%
+score here says the pipeline wires up correctly and that Gemini beats a hand-written lexicon
+on a clean vocabulary (63/63 vs 51/63). It says nothing about accuracy on a real descriptor
+distribution, and it should not be quoted as if it did.
+
+**So the honest question is what the system does without it.** That is answered as a number,
+not a caveat: see
+[EVALUATION.md → Ablation: performance without the content signal](EVALUATION.md#ablation-performance-without-the-content-signal).
+With the content family removed and the rule fully recalibrated, DriftWatch still buys a
+median 36 days of lead on 9 of 17 held-out drifters at an 11.3% false-positive rate, using
+only amount, timing and counterparty identifiers. `prohibited_category` detection collapses
+from 4/5 to 0/5 — that threat model depends on content entirely. Run it with
+`python run_all.py --ablate-content`.
+
 ## Why it is a fair test
 
 The failure mode of any synthetic evaluation is a generator that makes non-drifters boring.

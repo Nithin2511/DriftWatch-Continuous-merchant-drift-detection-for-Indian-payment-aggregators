@@ -34,7 +34,15 @@ from pathlib import Path
 
 # Pinned rather than "-latest": the evaluation numbers in docs/EVALUATION.md were
 # produced by this model, and a floating alias would silently invalidate them.
-MODEL = "gemini-3.5-flash"
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+
+#: Minimum gap between calls. Free-tier keys are rate-limited per minute, and 23 narrative
+#: calls fired back to back will trip it. Pacing the client is cheaper than retrying.
+MIN_CALL_INTERVAL_S = 6.0
+#: Backoff schedule for retryable failures (429 / 5xx / transport). Deliberately long:
+#: a per-minute limit needs to be waited out, not hammered.
+BACKOFF_S = (5.0, 15.0, 45.0, 90.0)
+_last_call_at = 0.0
 ENDPOINT = ("https://generativelanguage.googleapis.com/v1beta/models/"
             "{model}:generateContent")
 CACHE = Path("data/descriptor_categories.json")
@@ -97,6 +105,7 @@ def _call_gemini(prompt: str, max_tokens: int = 4000) -> str | None:
     fallback would let a bad key or a stale model name look like a clean run, and every
     number downstream would quietly be a fallback-mode number.
     """
+    global _last_call_at
     key = api_key()
     if not key:
         return None
@@ -110,22 +119,43 @@ def _call_gemini(prompt: str, max_tokens: int = 4000) -> str | None:
     }
     body_bytes = json.dumps(payload).encode()
 
-    for attempt in range(3):
+    attempts = len(BACKOFF_S) + 1
+    for attempt in range(attempts):
+        # Client-side pacing, applied before every attempt including the first.
+        gap = MIN_CALL_INTERVAL_S - (time.monotonic() - _last_call_at)
+        if gap > 0:
+            time.sleep(gap)
         try:
             req = urllib.request.Request(
                 url, data=body_bytes, headers={"content-type": "application/json"})
             with urllib.request.urlopen(req, timeout=300) as r:
                 body = json.loads(r.read())
+            _last_call_at = time.monotonic()
         except urllib.error.HTTPError as e:
-            detail = e.read().decode("utf-8", "replace")[:300]
-            # 429/503 are transient: back off and retry rather than silently degrading.
-            if e.code in (429, 503) and attempt < 2:
-                time.sleep(2.0 * (attempt + 1))
+            _last_call_at = time.monotonic()
+            detail = e.read().decode("utf-8", "replace")[:200]
+            retryable = e.code == 429 or 500 <= e.code < 600
+            if retryable and attempt < attempts - 1:
+                # Honour Retry-After when the API sends one, else use the schedule.
+                try:
+                    wait = float(e.headers.get("retry-after") or 0) or BACKOFF_S[attempt]
+                except (TypeError, ValueError):
+                    wait = BACKOFF_S[attempt]
+                print(f"  [llm] HTTP {e.code}; retrying in {wait:.0f}s "
+                      f"({attempt + 1}/{attempts - 1})")
+                time.sleep(wait)
                 continue
             # The key never appears in the message; only the status and API detail do.
             print(f"  [llm] Gemini call failed: HTTP {e.code} -- {detail}")
             return None
         except Exception as e:
+            _last_call_at = time.monotonic()
+            if attempt < attempts - 1:
+                wait = BACKOFF_S[attempt]
+                print(f"  [llm] {type(e).__name__}; retrying in {wait:.0f}s "
+                      f"({attempt + 1}/{attempts - 1})")
+                time.sleep(wait)
+                continue
             print(f"  [llm] Gemini call failed ({type(e).__name__}: {e}), using fallback")
             return None
 
@@ -211,6 +241,69 @@ def classify_descriptors(descriptors: list[str],
     CACHE.write_text(json.dumps({"mode": mode, "model": MODEL, "mapping": mapping},
                                 indent=2), encoding="utf-8")
     return mapping, mode
+
+
+#: Cases per narrative request. The free tier allows 20 generateContent calls per day per
+#: model; one call per case would need 23 and cannot complete. Batching makes narrative
+#: generation O(batches) rather than O(cases) -- the same reasoning that keeps descriptor
+#: classification O(vocabulary) rather than O(volume).
+NARRATIVE_BATCH_SIZE = 8
+
+
+def _batch_prompt(cases: list[dict]) -> str:
+    rules = [
+        "You are a risk analyst at an Indian payment aggregator writing the narrative",
+        "section of merchant-monitoring case files. Each quantitative trigger has",
+        "ALREADY fired -- do not re-assess whether it should have. Explain, in plain",
+        "language for a compliance reviewer, what each case shows and what happens next.",
+        "",
+        "Rules, applied to EVERY case:",
+        "- 120-180 words, three short paragraphs.",
+        "- Cite only the numbers belonging to THAT case. Never carry a figure from one",
+        "  case into another, and never invent one.",
+        "- State clearly that this is a behavioural signal requiring investigation,",
+        "  NOT a finding of wrongdoing.",
+        "- Do not cite regulatory clause numbers.",
+        "",
+        "Return ONLY a JSON object mapping each case_id to its narrative string.",
+        "No prose, no markdown fences.",
+        "",
+        "Cases:",
+    ]
+    return "\n".join(rules) + "\n" + json.dumps(cases, indent=1, default=str)
+
+
+def write_narratives(cases: list[dict],
+                     batch_size: int = NARRATIVE_BATCH_SIZE) -> tuple[dict[str, str], str]:
+    """Generate narratives for many cases in few requests.
+
+    Returns (mapping case_id -> narrative, mode). Cases the model does not return are
+    left out of the mapping; the caller falls back per case and labels each one.
+    """
+    if not api_key() or not cases:
+        return {}, "fallback-template"
+
+    out: dict[str, str] = {}
+    for i in range(0, len(cases), batch_size):
+        chunk = cases[i:i + batch_size]
+        raw = _call_gemini(_batch_prompt(chunk), max_tokens=8000)
+        if not raw:
+            continue
+        m = re.search(r"\{.*\}", raw, re.S)
+        if not m:
+            continue
+        try:
+            parsed = json.loads(m.group(0))
+        except json.JSONDecodeError:
+            continue
+        wanted = {c["case_id"] for c in chunk}
+        for cid, text in parsed.items():
+            if cid in wanted and isinstance(text, str) and text.strip():
+                out[cid] = text.strip()
+
+    if not out:
+        return {}, "fallback-template"
+    return out, "gemini"
 
 
 def write_narrative(case: dict) -> tuple[str, str]:

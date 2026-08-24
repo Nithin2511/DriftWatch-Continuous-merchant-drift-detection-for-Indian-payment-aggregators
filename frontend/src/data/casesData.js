@@ -2,7 +2,7 @@
 export const casesData = [
   {
     "case_id": "DW-MID0019-D152",
-    "generated_at_utc": "2026-08-23T18:54:37+00:00",
+    "generated_at_utc": "2026-08-24T07:56:08+00:00",
     "subject_entity": {
       "merchant_id": "MID0019",
       "declared_category": "food_and_beverage",
@@ -77,6 +77,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -89,11 +96,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0019, operating in the food and beverage category, triggered two risk signals on day 152, which is 124 days post-onboarding. The ticket-size Population Stability Index (PSI) reached 0.2819, exceeding the 0.25 threshold. Additionally, the network overlap signal registered at 0.35, surpassing the 0.2 threshold, indicating shared payer-VPAs or settlement accounts with another merchant.\n\nSupporting data shows the median ticket size rose from INR 267.9 to INR 362.14 (a 1.35x shift), while daily transactions increased from 87.6 to 142.6 (a 1.63x shift) across 1,335 distinct payer-VPAs, with a 0.003 refund rate. These metrics represent a behavioural signal requiring further investigation to understand the operational changes; they do not constitute a finding of wrongdoing.\n\nMoving forward, we recommend escalating this case to open a formal investigation within 72 hours. This review will specifically examine the structural link to another merchant entity to address the possibility of undisclosed third-party processing."
+    "narrative": "Merchant MID0019, operating in the food and beverage category, has triggered two risk signals 124 days post-onboarding. The ticket-size Population Stability Index (PSI) reached 0.2819, exceeding the 0.25 threshold, indicating a significant shift from the baseline. Additionally, the network overlap signal registered at 0.35, surpassing the 0.2 threshold, which points to shared payer-VPAs or settlement accounts with another merchant.\n\nSupporting data shows the median ticket size rose from INR 267.9 to INR 362.14 (a 1.35x shift), while daily transactions increased from 87.6 to 142.6 (a 1.63x shift) across 1,335 distinct payer-VPAs. Despite these shifts, common descriptors like \"paneer butter masala\" (152 count) and a low refund rate of 0.003 persist. Crucially, these alerts represent behavioural signals requiring further investigation, not a definitive finding of wrongdoing.\n\nAs a next step, we recommend escalating this case to open a formal investigation within 72 hours. The review will focus on the structural link to another merchant entity to rule out potential undisclosed third-party processing."
   },
   {
     "case_id": "DW-MID0054-D166",
-    "generated_at_utc": "2026-08-23T18:54:44+00:00",
+    "generated_at_utc": "2026-08-24T07:56:16+00:00",
     "subject_entity": {
       "merchant_id": "MID0054",
       "declared_category": "ecommerce",
@@ -168,6 +175,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -180,11 +194,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0054, an e-commerce entity onboarded 94 days ago, triggered two risk signals on day 166. The ticket-size Population Stability Index (PSI) reached 0.2642, exceeding the 0.25 threshold, as the median ticket size rose from a baseline of INR 601.0 to INR 877.91 (a 1.46 multiple). Additionally, the peer-relative transaction velocity score of 2.5286 crossed the 2.5 threshold, with daily transactions increasing from 44.4 to 105.9 (a 2.38 multiple).\n\nThese metrics represent a behavioural signal requiring further investigation, rather than a definitive finding of wrongdoing. The merchant's recent activity shows 724 distinct payer VPAs and a low refund rate of 0.0101. Top transaction descriptors include \"wall clock\" (127), \"running shoes size 9\" (119), and \"sunglasses\" (117). This shift in transaction patterns and volume could stem from legitimate business growth.\n\nAs a next step, we must open a formal review within 72 hours to investigate this divergence. Settlements will remain active and will only be held pending reviewer confirmation if the investigation confirms an unauthorized divergence."
+    "narrative": "Merchant MID0054, operating in the ecommerce category, triggered automated risk alerts on day 166, which is 94 days since onboarding. This is a behavioural signal requiring investigation to understand the merchant's operational shift, and is not a finding of wrongdoing.\n\nThe evidence shows a significant distributional shift. The ticket-size Population Stability Index (PSI) reached 0.2642"
   },
   {
     "case_id": "DW-MID0064-D160",
-    "generated_at_utc": "2026-08-23T18:54:50+00:00",
+    "generated_at_utc": "2026-08-24T07:56:30+00:00",
     "subject_entity": {
       "merchant_id": "MID0064",
       "declared_category": "financial_services",
@@ -259,6 +273,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -271,11 +292,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0064, registered under financial services, triggered two risk signals on day 160, which is 106 days post-onboarding. This is a behavioural signal requiring investigation to understand recent operational shifts, not a definitive finding of wrongdoing.\n\nThe category mismatch signal reached 0.4869 on the trigger day, exceeding the 0.1895 threshold. This is accompanied by a ticket-size distribution shift, with a PSI of 0.2816 against a 0.25 threshold. Specifically, the median ticket size increased 1.72 times from INR 2,279.26 to INR 3,924.98, while daily transactions rose from 11.0 to 17.1. Top transaction descriptors include \"forex signal subscription\" (21), \"prediction contest entry\" (20), and \"loan processing charge\" (20) across 164 distinct payer VPAs, with a refund rate of 0.0042.\n\nAs a next step, we recommend opening a formal review within 72 hours to investigate these behavioural changes."
+    "narrative": "Merchant MID0064, onboarded 106 days ago under the \"financial_services\" category, triggered monitoring alerts on day 160. The category mismatch signal reached 0.4869 on the trigger day, exceeding the 0.1895 threshold. Additionally, the ticket-size Population Stability Index (PSI) registered at 0.2816, surpassing the 0.25 threshold and indicating a significant shift in transaction distribution.\n\nSupporting data reveals the median ticket size rose from INR 2,279.26 to INR 3,924.98"
   },
   {
     "case_id": "DW-MID0073-D170",
-    "generated_at_utc": "2026-08-23T18:55:00+00:00",
+    "generated_at_utc": "2026-08-24T07:56:42+00:00",
     "subject_entity": {
       "merchant_id": "MID0073",
       "declared_category": "food_and_beverage",
@@ -350,6 +371,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -362,11 +390,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0073, operating in the food and beverage category, triggered two risk signals on day 170. The ticket-size distribution stability index (PSI) reached 0.2927, exceeding the 0.25 threshold. Additionally, the peer-relative transaction velocity Z-score reached 3.1633 on the trigger day, surpassing the 2.5 threshold.\n\nSupporting data shows the median ticket size shifted 1.37 times, from INR 253.72 to INR 346.58. Daily transactions grew 2.52 times, from a baseline of 47.8 to 120.4. Despite these shifts, operations appear typical for food services, with 804 distinct payer VPAs, a low refund rate of 0.003, and top descriptors like \"gulab jamun 4pc\" (155) and \"samosa plate\" (143).\n\nThis is a behavioural signal requiring investigation, not a finding of wrongdoing. Next, we must open a review within 72 hours. Settlement will be held pending reviewer confirmation only if a divergence is confirmed."
+    "narrative": "Merchant MID0073, operating in the food and beverage category, triggered two risk signals on day 170, 56 days since onboarding. The ticket-size distribution shifted significantly, with a Population Stability Index (PSI) of 0.2927, exceeding the 0.25 threshold. Additionally, the peer-relative transaction velocity reached 2.6346 (with a trigger-day value of 3.1633), crossing the 2.5 threshold.\n\nSupporting data shows the median ticket size rose from INR 253.72 to INR 346.58 (a 1.37x shift), while daily transactions grew from 47.8 to 120.4 (a 2.52x shift). Transaction descriptors remain consistent with food items like \"gulab jamun 4pc\" (155 counts). With 804 distinct payer VPAs and a low refund rate of 0.003, this is strictly a behavioural signal requiring investigation, not a finding of wrongdoing.\n\nAs a next step, we must initiate an investigation and open a review within 72 hours. We will hold settlements pending reviewer confirmation only if a policy divergence is confirmed."
   },
   {
     "case_id": "DW-MID0093-D109",
-    "generated_at_utc": "2026-08-23T18:55:07+00:00",
+    "generated_at_utc": "2026-08-24T07:56:54+00:00",
     "subject_entity": {
       "merchant_id": "MID0093",
       "declared_category": "travel_agency",
@@ -441,6 +469,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -453,11 +488,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0093, onboarded 77 days ago as a travel agency, triggered an alert on day 109 due to two behavioural signals. First, the category mismatch signal reached 0.5387 on the trigger day, exceeding the 0.1895 threshold. Second, the ticket-size Population Stability Index (PSI) hit 0.2625, crossing the 0.25 threshold. Please note this is a behavioural signal requiring investigation, not a finding of wrongdoing.\n\nSupporting data reveals the median ticket size dropped from INR 5,383.94 to INR 3,820.82 (a 0.71 multiple), while daily transactions increased from 13.5 to 22.1 (a 1.64 multiple). The refund rate is 0.0032 across 195 distinct payer VPAs. Top descriptors include \"flight booking del-bom\" (20), \"visa processing fee\" (1"
+    "narrative": "Merchant MID0093, registered as a travel agency, triggered two risk signals on day 109 of operations (77 days since onboarding). The category mismatch signal reached 0.5387 on the trigger day, exceeding the 0.1895 threshold, with 4 consecutive extreme days. Additionally, the ticket Population Stability Index (PSI) hit 0.2625, crossing the 0.25 threshold, indicating a significant shift in transaction behavior.\n\nSupporting data shows the median ticket size decreased from a baseline of INR 5,383.94 to INR 3,820.82 (a 0.71 multiple shift), while daily transactions rose from 13.5 to 22.1 (a 1.64 volume shift). Top descriptors include \"flight booking del-bom\" (20), \"visa processing fee\" (19), and \"bus ticket blr-mys\" (18), across 195 distinct payer VPAs, with a refund rate of 0.0032.\n\nThese alerts represent behavioural signals requiring investigation, not a finding of wrongdoing. Next steps require opening a review within 72 hours. We will hold settlement pending reviewer confirmation only if a divergence is confirmed."
   },
   {
     "case_id": "DW-MID0106-D115",
-    "generated_at_utc": "2026-08-23T18:55:13+00:00",
+    "generated_at_utc": "2026-08-24T07:57:07+00:00",
     "subject_entity": {
       "merchant_id": "MID0106",
       "declared_category": "financial_services",
@@ -532,6 +567,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -544,11 +586,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0106, operating in financial services, triggered two risk signals on day 115, 30 days post-onboarding. The peer-relative transaction velocity score reached 2.5161, exceeding the 2.5 threshold, as daily transactions rose from a baseline of 31.4 to 40.1. Additionally, the network overlap signal registered at 0.35, surpassing the 0.2 threshold, indicating shared payer VPAs or settlement accounts among 386 distinct payers.\n\nWhile the median ticket size remained stable, shifting slightly from 1788.43 INR to 1773.76 INR, the network overlap suggests a potential structural link to another entity. Crucially, this is a behavioral signal requiring investigation, not a finding of wrongdoing.\n\nWe recommend escalating this case to open an investigation within 72 hours. The inquiry will determine if this overlap indicates undisclosed third-party processing."
+    "narrative": "Merchant MID0106, a financial services provider onboarded 30 days ago, triggered two risk signals on day 115. The peer-relative velocity score reached 2.5161, exceeding the 2.5 threshold, as daily transactions rose from a baseline of 31.4 to 40.1. Additionally, the network overlap signal registered at 0.35 against a 0.2 threshold, indicating shared payer Virtual Payment Addresses (VPAs) or settlement accounts with another merchant.\n\nSupporting data shows a stable median ticket size shifting slightly from 1788.43 INR to 1773.76 INR, with 386 distinct payer VPAs and a low refund rate of 0.0018. It is critical to note that these triggers represent a behavioural signal requiring further investigation, and do not constitute a definitive finding of wrongdoing by the merchant.\n\nBased on these findings, we recommend escalating this case to open a formal investigation within 72 hours. The primary objective is to investigate the structural link to another merchant entity, which suggests potential undisclosed third-party processing."
   },
   {
     "case_id": "DW-MID0109-D129",
-    "generated_at_utc": "2026-08-23T18:55:27+00:00",
+    "generated_at_utc": "2026-08-24T07:57:24+00:00",
     "subject_entity": {
       "merchant_id": "MID0109",
       "declared_category": "food_and_beverage",
@@ -623,6 +665,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -635,11 +684,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0109, registered under the food and beverage category, triggered two risk signals on day 129. The category mismatch signal reached 0.198, exceeding the 0.1895 threshold. Additionally, the ticket-size Population Stability Index (PSI) hit 0.2667, with a trigger-day value of 1.2307, crossing the 0.25 threshold for 4 consecutive extreme days. This indicates a significant shift in transaction patterns.\n\nSupporting data reveals the median ticket size rose from an INR 245.48 baseline to INR 525.98 (a 2.14 multiple), while daily transactions increased from 99.6 to 132.6. Despite these shifts, top descriptors remain food-related, including \"masala dosa\" (132) and \"gulab jamun 4pc\" (131). There are 1,321 distinct payer VPAs in the window and a low refund rate of 0.0032.\n\nPlease note that this is a behavioural signal requiring investigation, not a finding of wrongdoing. We recommend opening a review within 72 hours. Settlements should only be held if the reviewer confirms a material divergence."
+    "narrative": "Merchant MID0109, registered under food and beverage, triggered alerts on day 129. The category mismatch signal reached 0.198, exceeding the 0.1895 threshold. Concurrently, the ticket-size Population Stability Index (PSI) hit 0.2667 (reaching 1.2307 on the trigger day), crossing the 0.25 threshold for 4 consecutive days. This indicates a significant shift in transaction patterns.\n\nSupporting data shows the median ticket size rose from INR 245.48 to INR 525.98 (a 2.14 multiple), while daily transactions increased from 99.6 to 132.6. Despite these shifts, top descriptors remain food-related, like \"masala dosa\" (132) and \"gulab jamun 4pc\" (131). With 1,321 distinct payer VPAs and a low 0.0032 refund rate, this is strictly a behavioural signal requiring investigation, not a finding of wrongdoing.\n\nWe must now initiate a formal review within 72 hours. Settlements will remain active and will only be placed on hold if the reviewer confirms a material, unauthorized divergence from the merchant's declared business model."
   },
   {
     "case_id": "DW-MID0112-D190",
-    "generated_at_utc": "2026-08-23T18:55:38+00:00",
+    "generated_at_utc": "2026-08-24T07:57:36+00:00",
     "subject_entity": {
       "merchant_id": "MID0112",
       "declared_category": "financial_services",
@@ -714,6 +763,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -726,11 +782,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0112, onboarded 93 days ago under the \"financial_services\" category, triggered a risk alert on day 190. The category mismatch signal reached 0.2763 on the trigger day, exceeding the 0.1895 threshold. This indicates a shift in transaction descriptors, with recent top descriptors including \"portfolio review\" (10), \"demat maintenance\" (9), and \"loan processing charge\" (8).\n\nAdditionally, the ticket-size Population Stability Index (PSI) hit 0.2739, surpassing the 0.25 threshold. This reflects a significant distributional shift: the median ticket size rose from a baseline of INR 1520.04 to INR 1747.62 (a 1.15 multiple), while daily transactions dropped from 7.7 to 5.1. There were 62 distinct payer VPAs and a 0.0"
+    "narrative": "Merchant MID0112, registered under the \"financial_services\" category and onboarded 93 days ago, triggered two risk signals on day 190. First, the category mismatch signal reached 0.2763 on the trigger day, exceeding the 0.1895 threshold. Second, the ticket-size Population Stability Index (PSI) hit 0.2739, crossing the 0.25 threshold. These metrics indicate a shift in transaction patterns and descriptors compared to the merchant's baseline.\n\nSupporting data shows the median ticket size increased from INR 1520.04 to INR 1747.62 ("
   },
   {
     "case_id": "DW-MID0124-D163",
-    "generated_at_utc": "2026-08-23T18:55:45+00:00",
+    "generated_at_utc": "2026-08-24T07:57:50+00:00",
     "subject_entity": {
       "merchant_id": "MID0124",
       "declared_category": "financial_services",
@@ -805,6 +861,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -817,11 +880,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0124, a financial services entity onboarded 113 days ago, triggered two risk signals on day 163. The peer-relative transaction velocity score reached 2.7838, exceeding the 2.5 threshold. Additionally, the network overlap signal registered at 0.35, surpassing the 0.2 threshold, indicating a shared payer population or settlement account with another merchant.\n\nSupporting data shows daily transactions rose from a baseline of 5.6 to 8.2 (a 1.47 volume shift multiple), while the median ticket size shifted from 2408.36 INR to 2541.50 INR. Among 71 distinct payer VPAs, the refund rate is 0.0087. Crucially, these metrics represent a behavioral signal requiring investigation, not a finding of wrongdoing.\n\nNext, we will escalate this case to open a formal investigation within 72 hours. The primary focus of this review will be assessing the structural link to another merchant entity to investigate potential undisclosed third-party processing."
+    "narrative": "Merchant MID0124, a financial services entity onboarded 113 days ago, triggered two risk signals on day 163. The peer-relative transaction velocity score reached 2.7838, exceeding the 2.5 threshold. Additionally, the network overlap signal registered at 0.35, surpassing the 0.2 threshold. This indicates a shared payer population or settlement account with another merchant.\n\nSupporting data shows daily transactions rose from a baseline of 5.6 to 8.2 (a 1.47 shift multiple), while the median ticket size increased from INR 2408.36 to INR 2541.5. During this window, we observed 71 distinct payer VPAs, a refund rate of 0.0087, and top transaction descriptors like \"advisory fee quarterly\" (21 counts) and \"tax filing assistance\" (19 counts).\n\nPlease note that these triggers represent behavioral signals requiring further investigation, not a definitive finding of wrongdoing. We recommend escalating this case to open a formal investigation within 72 hours to examine the structural link to another merchant entity, which suggests potential undisclosed third-party processing."
   },
   {
     "case_id": "DW-MID0131-D162",
-    "generated_at_utc": "2026-08-23T18:56:03+00:00",
+    "generated_at_utc": "2026-08-24T07:58:07+00:00",
     "subject_entity": {
       "merchant_id": "MID0131",
       "declared_category": "education",
@@ -885,6 +948,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -897,11 +967,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0131, operating under the declared category of \"education\" for 134 days, triggered an alert on day 162 due to a sustained \"category_mismatch\" signal. The mismatch value reached 0.5207, significantly exceeding the threshold of 0.1895. This divergence first crossed the threshold on day 151 and has persisted for 5 consecutive extreme days.\n\nSupporting data shows a current median ticket of INR 2855.61 (up from a baseline of INR 2821.49) and current daily transactions of 22.7 (up from 17.3). Top transaction descriptors include \"certification exam fee\" (22), \"support plan annual\" (21), and \"live batch access\" (20), involving 229 distinct payer VPAs with a 0.0 refund rate. Crucially, this represents a behavioural signal requiring further investigation, not a definitive finding of wrongdoing.\n\nAs next steps, we recommend opening a formal review within 72 hours. Because this is a single-family sustained extreme divergence with no corroborating signal family yet, we will investigate the merchant's actual business activities to clarify the nature of these transactions."
+    "narrative": "Merchant MID0131, operating under the declared category of \"education\" for 134 days, triggered a \"category_mismatch\" alert on day 162. The mismatch metric reached 0.5207, significantly exceeding the threshold of 0.1895. This divergence first crossed the threshold on day 151 and has sustained an extreme state for 5 consecutive days.\n\nSupporting data shows stable transaction patterns, with a current median ticket of INR 2855.61 (up from INR 2821.49) and daily transactions rising to 22.7 from 17.3. Top transaction descriptors include \"certification exam fee\" (22), \"support plan annual\" (21), and \"live batch access\" (20), spanning 229 distinct payer VPAs with a 0.0% refund rate. Please note this is a behavioural signal requiring investigation, not a finding of wrongdoing.\n\nAs this represents a single-family sustained extreme divergence with no corroborating signal family yet, we recommend opening a formal review within 72 hours. This investigation will clarify if the transaction descriptors align with the merchant's"
   },
   {
     "case_id": "DW-MID0138-D108",
-    "generated_at_utc": "2026-08-23T18:56:11+00:00",
+    "generated_at_utc": "2026-08-24T07:58:21+00:00",
     "subject_entity": {
       "merchant_id": "MID0138",
       "declared_category": "ecommerce",
@@ -965,6 +1035,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -977,11 +1054,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0138, onboarded 82 days ago under the \"ecommerce\" category, triggered an alert on day 108. The \"category_mismatch\" signal crossed its 0.1895 threshold on day 89 and reached 0.539 on the trigger day, marking 5 consecutive extreme days. This indicates a significant share of recent transactions mismatching the declared category.\n\nSupporting data shows a shift in transaction patterns. The median ticket size rose from INR 524.23 to INR 738.83 (a 1.41 multiple), while daily transactions increased from 58.7 to 163.2 (a 2"
+    "narrative": "Merchant MID0138, onboarded 82 days ago under the \"ecommerce\" category, triggered an alert on day 108. The \"category_mismatch\" signal fired as the mismatch value reached 0.539, significantly exceeding the 0.1895 threshold. This divergence first crossed the threshold on day 89 and has remained at extreme levels for 5 consecutive days.\n\nSupporting data reveals a notable shift in transaction patterns. The merchant's daily transactions rose from a baseline of 58.7 to 163.2 (a 2.78 multiple shift), and the median ticket size increased from INR 524.23 to INR 738.83 (a 1.41 multiple shift). Top transaction descriptors now include \"nutraceutical rx pack\" (166), \"replica branded watch\" (158), and \"gaming credit topup\" (158), spanning 1092 distinct payer VPAs with a refund rate of 0.0048.\n\nThis alert is strictly a behavioural signal requiring investigation, not a finding of wrongdoing. As this is a single-family sustained extreme divergence with no corroborating signal family yet, we recommend opening a formal review within 72 hours."
   },
   {
     "case_id": "DW-MID0141-D100",
-    "generated_at_utc": "2026-08-23T18:56:18+00:00",
+    "generated_at_utc": "2026-08-24T07:58:33+00:00",
     "subject_entity": {
       "merchant_id": "MID0141",
       "declared_category": "travel_agency",
@@ -1056,6 +1133,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1068,11 +1152,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0141, a declared travel agency onboarded 84 days ago, triggered two risk signals on day 100. First, the ticket-size Population Stability Index (PSI) reached 0.2979 (against a 0.25 threshold), indicating a significant shift from its baseline. Second, the network overlap signal reached 0.35 (against a 0.2 threshold), indicating shared payer VPAs or settlement accounts with another merchant.\n\nSupporting data shows the median ticket size rose from INR 5,047.67 to INR 6,347.11 (a 1.26 multiple shift), while daily transactions increased from 6.2 to 9.7. Top transaction descriptors include \"visa processing fee\" (24) and \"bus ticket blr-mys\" (22). These metrics represent behavioural signals requiring further investigation to understand these operational changes, and do not constitute a finding of wrongdoing.\n\nConsequently, we recommend escalating this case to open a formal investigation within 72 hours. The investigation will focus on the 0.35 network overlap, which suggests a potential structural link to another merchant entity and possible undisclosed third-party processing."
+    "narrative": "Merchant MID0141, registered as a travel agency, has triggered risk alerts 84 days post-onboarding. The Population Stability Index (PSI) for ticket-size distribution reached 0.2979, exceeding the 0.25 threshold. This shift is reflected in the median ticket size rising from a baseline of INR 5,047.67 to INR 6,347.11 (a 1.26 multiple shift), alongside daily transactions increasing from 6.2 to 9.7.\n\nAdditionally, a network overlap signal fired at 0.35, surpassing the 0.2 threshold. This indicates a shared settlement account or overlapping payer-VPA population (out of 93 distinct VPAs) with another merchant. While top descriptors like \"visa processing fee\" (24) align with travel services, these combined metrics represent a behavioural signal requiring investigation,"
   },
   {
     "case_id": "DW-MID0148-D173",
-    "generated_at_utc": "2026-08-23T18:56:24+00:00",
+    "generated_at_utc": "2026-08-24T07:58:47+00:00",
     "subject_entity": {
       "merchant_id": "MID0148",
       "declared_category": "financial_services",
@@ -1147,6 +1231,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1159,11 +1250,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0148, operating in the financial services category, triggered two risk signals on day 173 of operations (53 days since onboarding). First, the ticket-size Population Stability Index (PSI) reached 0.2791, exceeding the 0.25 threshold. This reflects a shift where the median ticket size dropped from a baseline of INR 2,118.72 to INR 1,451.7 (a 0.69 multiple), while daily transactions rose from 17.5 to 21.4.\n\nSecond, the network overlap signal registered at 0.35, surpassing the 0.2 threshold. This indicates a shared settlement account or overlapping payer-VPA population among the 237 distinct payer VPAs. Top transaction descriptors include \"demat maintenance\" (38), \"loan processing charge\" (35), and \"insurance premium\" (34). These are behavioral signals requiring further investigation, not definitive findings of wrongdoing.\n\nConsequently, we recommend escalating this case to open a formal investigation within 72 hours. The investigation will focus on the structural link to another merchant entity to rule out undisclosed third-party processing, despite a low refund rate of 0.0033."
+    "narrative": "Merchant MID0148, operating in financial services, has triggered two risk signals 53 days post-onboarding. The ticket-size Population Stability Index (PSI) reached 0.2791, exceeding the 0.25 threshold. This indicates a significant shift from the baseline median ticket of INR 2,118.72 to a current median of INR 1,451.7, while daily transactions rose from 17.5 to 21.4.\n\nAdditionally, the network overlap signal registered at 0.35, surpassing the 0.2 threshold. This suggests shared settlement accounts or overlapping payer VPAs among the 237 distinct VPAs. Transaction descriptors are led by \"demat maintenance\" (38), \"loan processing charge\" (35), and \"insurance premium\" (34), with a low refund rate of 0.0033.\n\nPlease note these metrics represent a behavioural signal requiring further investigation, not a definitive finding of wrongdoing. As a next step, we will escalate this case to open a formal investigation within 72 hours to examine potential undisclosed third-party processing indicated by the structural link to another merchant."
   },
   {
     "case_id": "DW-MID0153-D182",
-    "generated_at_utc": "2026-08-23T18:56:43+00:00",
+    "generated_at_utc": "2026-08-24T07:58:59+00:00",
     "subject_entity": {
       "merchant_id": "MID0153",
       "declared_category": "travel_agency",
@@ -1238,6 +1329,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1250,11 +1348,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0153, registered as a travel agency and onboarded 66 days ago, triggered automated alerts on day 182. The category mismatch signal reached 0.1895, meeting the threshold of 0.1895. Additionally, the network overlap signal reached 0.35, exceeding the 0.2 threshold first crossed on day 163, indicating a shared payer-VPA population or settlement account with another merchant.\n\nSupporting data shows the current median ticket size shifted to 4496.06 INR (a 0.76 multiple of the 5909.2 INR baseline), while daily transactions rose to 18.1 from a 12.5 baseline (a 1.46 multiple). Out of 185 distinct payer VPAs, top descriptors include \"flight booking del-bom\" (34) and \"visa processing fee\" (28). The refund rate stands at 0.0118.\n\nPlease note that these findings represent behavioral signals requiring further investigation, not a definitive finding of wrongdoing. We recommend escalating this case to open a formal investigation within 72 hours to evaluate potential undisclosed third-party processing suggested by the structural network link."
+    "narrative": "Merchant MID0153, registered as a travel agency and onboarded 66 days ago, triggered automated alerts on day 182. The category mismatch signal reached 0.1895, meeting the threshold, while the network overlap signal hit 0.35, exceeding the 0.2 threshold. These metrics represent behavioral signals requiring further investigation, not a definitive finding of wrongdoing.\n\nSupporting data shows a shift in transaction patterns. The median ticket size decreased from a baseline of 5909.2 INR to 4496.06 INR (a 0.76 multiple), while daily transactions rose from 12.5 to 18.1 (a 1.46 multiple). Recent activity across 185 distinct payer VPAs includes descriptors like \"flight booking del-bom\" (34 transactions) and \"visa processing fee\" (28 transactions), with a low refund rate of 0.0118.\n\nThe network overlap of 0.35 suggests a structural link to another merchant entity, indicating potential undisclosed third-party processing. Consequently, the recommended action is to escalate this case and open a formal investigation within 72 hours to clarify these operational relationships."
   },
   {
     "case_id": "DW-MID0157-D122",
-    "generated_at_utc": "2026-08-23T18:56:55+00:00",
+    "generated_at_utc": "2026-08-24T07:59:16+00:00",
     "subject_entity": {
       "merchant_id": "MID0157",
       "declared_category": "food_and_beverage",
@@ -1329,6 +1427,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1341,11 +1446,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0157, a food and beverage merchant, triggered alerts on day 122 (118 days since onboarding). The Population Stability Index (PSI) for ticket-size distribution reached 0.2693, crossing the 0.25 threshold. Concurrently, the peer-relative velocity Z-score hit 3.7296 (measuring 2.9457 on the trigger day), exceeding the 2.5 threshold.\n\nSupporting data reveals the median ticket size shifted 1.36 times, rising from INR 265.99 to INR 361.93. Daily transactions grew 3.84 times, from a baseline of 85.1 to 327.0, across 1,654 distinct payer VPAs. Common transaction descriptors include \"veg biryani\" (389) and \"cold coffee\" (383), while the refund rate remains low at 0.0033.\n\nThis alert is a behavioural signal requiring investigation, not a finding of wrongdoing. As a next step, we must open a formal review within 72 hours. Settlements will be held pending reviewer confirmation only if a divergence is confirmed."
+    "narrative": "Merchant MID0157, operating in the food and beverage category, triggered two risk signals 118 days post-onboarding. The Population Stability Index (PSI) for ticket-size distribution reached 0.2693, exceeding the 0.25 threshold on trigger day 122. Additionally, the peer-relative transaction velocity Z-score reached 3.7296 (measuring 2.9457 on the trigger day), crossing the 2.5 threshold.\n\nThis evidence shows a shift from the merchant's baseline. The median ticket size increased 1.36 times from INR 265.99 to INR 361.93, while daily transactions rose 3.84 times from 85.1 to 327.0. However, supporting data shows 1,654 distinct payer VPAs, a low refund rate of 0.0033, and typical food descriptors like \"veg biryani\" (389), \"cold coffee\" (383), and \"chicken roll\" (381).\n\nThis is strictly a behavioural signal requiring investigation, not a finding of wrongdoing. Next, we must open a review within 72 hours. Settlements will only be held if the reviewer confirms a genuine, unauthorized divergence."
   },
   {
     "case_id": "DW-MID0164-D136",
-    "generated_at_utc": "2026-08-23T18:57:01+00:00",
+    "generated_at_utc": "2026-08-24T07:59:29+00:00",
     "subject_entity": {
       "merchant_id": "MID0164",
       "declared_category": "it_and_software",
@@ -1420,6 +1525,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1432,11 +1544,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0164, onboarded 113 days ago under the \"it_and_software\" category, triggered two risk signals on day 136. The category mismatch signal reached 0.5375 (threshold: 0.1895), first crossing on day 114 with 5 consecutive extreme days. Additionally, the"
+    "narrative": "Merchant MID0164, onboarded 113 days ago under the \"it_and_software\" category, triggered two risk signals on day 136. The category mismatch signal reached 0.5375 (against a 0.1895 threshold), and the ticket-size Population Stability Index (PSI) hit 0.2607 (against a 0.25 threshold). These are behavioural signals requiring investigation, not definitive findings of wrongdoing.\n\nThe supporting data shows a significant shift in transaction patterns. The median ticket size rose from INR 3,498.04 to INR 5,484.04 (a 1.57 multiple shift), while daily transactions increased from 9.0 to 12.7. Crucially, top transaction descriptors include \"unlicensed supplement bundle\" (17 counts) and \"replica branded watch\" (15 counts), alongside \"integration setup fee\" (16 counts), across 139 distinct payer VPAs. The refund rate is 0.0112.\n\nAs next steps, we must open a formal review within 72 hours. We will investigate this divergence further, holding settlements only if the reviewer confirms a material policy violation or category misrepresentation."
   },
   {
     "case_id": "DW-MID0171-D158",
-    "generated_at_utc": "2026-08-23T18:57:32+00:00",
+    "generated_at_utc": "2026-08-24T07:59:41+00:00",
     "subject_entity": {
       "merchant_id": "MID0171",
       "declared_category": "travel_agency",
@@ -1511,6 +1623,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1523,11 +1642,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0171, registered as a travel agency, has triggered two risk signals 61 days after onboarding. The category mismatch signal reached 0.2042, exceeding the 0.1895 threshold, indicating transaction descriptors deviate from the declared category. Additionally, the network overlap signal registered at 0.35 against a 0.2 threshold, pointing to shared payer-VPA populations or settlement accounts with another merchant.\n\nSupporting data shows a current median ticket size of 4,361.43 INR (down from a 4,965.2 INR baseline) across 30.4 daily transactions. While top descriptors like \"visa processing fee\" (43 counts) and \"travel insurance addon\" (40 counts) align with travel, the high network overlap suggests a structural link to another entity. This is a behavioral signal requiring investigation, not a finding of wrongdoing.\n\nWe recommend escalating this case to open a formal investigation within 72 hours. The primary objective is to investigate potential undisclosed third-party processing arising from the shared network links, while reviewing the merchant's operational relationship with the overlapping entity."
+    "narrative": "Merchant MID0171, onboarded 61 days ago as a travel agency, triggered two risk signals on day 158. The category mismatch signal reached 0.2042, exceeding the 0.1895 threshold, indicating transaction descriptors deviate from the declared category. Additionally, the network overlap signal registered at 0.35 against a 0.2 threshold, pointing to shared payer-VPA populations or settlement accounts with another merchant.\n\nSupporting data shows a current median ticket size of 4,361.43 INR (baseline: 4,965.2 INR) and 30.4 current daily transactions. Top descriptors include \"visa processing fee\" (43) and \"travel insurance addon\" (40) among 318 distinct payer VPAs. Importantly, this is a behavioral signal requiring investigation, not a finding of wrongdoing.\n\nWe recommend escalating this case to open an investigation within 72 hours. The review will focus on the structural link to another merchant entity, which suggests possible undisclosed third-party processing."
   },
   {
     "case_id": "DW-MID0181-D199",
-    "generated_at_utc": "2026-08-23T18:57:59+00:00",
+    "generated_at_utc": "2026-08-24T07:59:59+00:00",
     "subject_entity": {
       "merchant_id": "MID0181",
       "declared_category": "food_and_beverage",
@@ -1602,6 +1721,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1612,13 +1738,13 @@ export const casesData = [
         "network_overlap": 0.2
       },
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
-      "narrative_mode": "fallback-template"
+      "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0181 (declared category: food_and_beverage) crossed the corroboration threshold on observation day 199, 106 days after onboarding. 2 independent signal families fired inside the review window.\n\nEvidence: category_mismatch = 0.192 against a threshold of 0.190 (first crossed day 161); ticket_psi = 0.255 against a threshold of 0.250 (first crossed day 199).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
+    "narrative": "Merchant MID0181, onboarded 106 days ago under the \"food_and_beverage\" category, triggered two risk signals on day 199. The category mismatch signal reached 0.4514 against a 0.1895 threshold, having first crossed on day 161. Additionally, the ticket-size Population Stability Index (PSI) hit 0.2554, exceeding the 0.25 threshold. These are behavioural signals requiring investigation, not a definitive finding of wrongdoing.\n\nThe evidence shows a clear shift in transaction patterns. The median ticket size rose from a baseline of 382.79 INR to 502.57 INR, and daily transactions increased from 35.4 to 46.5, both representing a 1.31 multiple shift. Crucially, top transaction descriptors include \"unlicensed supplement bundle\" (48 transactions), \"replica branded watch\" (46 transactions), and \"nutraceutical rx pack\" (39 transactions), diverging from food and beverage. There are 383 distinct payer VPAs and a refund rate of 0.0031.\n\nAs a next step, we must open a formal review within 72 hours to investigate this divergence. Settlement holds will only be applied if the reviewer confirms a policy violation or unauthorized category shift during this investigation."
   },
   {
     "case_id": "DW-MID0186-D144",
-    "generated_at_utc": "2026-08-23T18:58:12+00:00",
+    "generated_at_utc": "2026-08-24T08:00:11+00:00",
     "subject_entity": {
       "merchant_id": "MID0186",
       "declared_category": "ecommerce",
@@ -1693,6 +1819,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1703,13 +1836,13 @@ export const casesData = [
         "network_overlap": 0.2
       },
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
-      "narrative_mode": "fallback-template"
+      "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0186 (declared category: ecommerce) crossed the corroboration threshold on observation day 144, 73 days after onboarding. 2 independent signal families fired inside the review window.\n\nEvidence: category_mismatch = 0.212 against a threshold of 0.190 (first crossed day 133); ticket_psi = 0.300 against a threshold of 0.250 (first crossed day 144).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
+    "narrative": "Merchant MID0186, onboarded 73 days ago as an \"ecommerce\" business, triggered two risk signals on day 144. First, the category mismatch signal reached 0.4996 on the trigger day, exceeding the 0.1895 threshold. This indicates transaction descriptors deviate from the declared category. Second, the ticket-"
   },
   {
     "case_id": "DW-MID0188-D080",
-    "generated_at_utc": "2026-08-23T18:59:16+00:00",
+    "generated_at_utc": "2026-08-24T08:00:24+00:00",
     "subject_entity": {
       "merchant_id": "MID0188",
       "declared_category": "it_and_software",
@@ -1784,6 +1917,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1794,13 +1934,13 @@ export const casesData = [
         "network_overlap": 0.2
       },
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
-      "narrative_mode": "fallback-template"
+      "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0188 (declared category: it_and_software) crossed the corroboration threshold on observation day 80, 45 days after onboarding. 2 independent signal families fired inside the review window.\n\nEvidence: ticket_psi = 0.415 against a threshold of 0.250 (first crossed day 77); velocity_peer_z = 2.852 against a threshold of 2.500 (first crossed day 80).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
+    "narrative": "Merchant MID0188, operating in the \"it_and_software\" category, triggered two risk signals on day 80. The Population Stability Index (PSI) for ticket-size distribution reached 0.8095 against a 0.25 threshold, indicating a significant shift from its baseline. Additionally, the peer-relative transaction velocity Z-score hit 2.8517, exceeding the 2.5 threshold.\n\nSupporting data shows the median ticket size increased 1.4 times, from INR 2,412.11 to INR 3,372.81, while daily transactions rose from 4.1 to 4.6. Top transaction descriptors include \"api usage overage\" (11), \"priority sla upgrade\" (9), and \"developer seat addon\" (9), across 50 distinct payer VPAs with a 0.0% refund rate. This is strictly a behavioural signal requiring investigation, not a finding of wrongdoing.\n\nNext, we must open an investigation review within 72 hours. Settlements will proceed as normal, and we will hold settlement pending reviewer confirmation only if a material divergence is confirmed."
   },
   {
     "case_id": "DW-MID0195-D069",
-    "generated_at_utc": "2026-08-23T18:59:32+00:00",
+    "generated_at_utc": "2026-08-24T08:00:37+00:00",
     "subject_entity": {
       "merchant_id": "MID0195",
       "declared_category": "travel_agency",
@@ -1875,6 +2015,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1887,11 +2034,11 @@ export const casesData = [
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
       "narrative_mode": "gemini"
     },
-    "narrative": "Merchant MID0195, registered as a travel agency, triggered two risk signals on day 69 of onboarding (50 days active). The category mismatch signal reached 0.2335, exceeding the 0.1895 threshold. Additionally, the peer-relative velocity Z-score crossed its 2.5 threshold on day 67 at 2.5092, though it stood at 1.3212 on the trigger day.\n\nSupporting data shows daily transactions rose from a baseline of 12.9 to 18.3 (a 1.42 volume shift multiple), while the median ticket size shifted slightly from INR 5,082.34 to INR 4,852.8. Top transaction descriptors include \"bus ticket blr-mys\" (31), \"cab airport transfer\" (29), and \"flight booking del-bom\" (24), spread across 175 distinct payer VPAs with a 0.0 refund rate.\n\nPlease note these are behavioural signals requiring investigation, not a finding of wrongdoing. Next, we must open a formal review within 72 hours. Settlements will be held pending reviewer confirmation only if a divergence is confirmed."
+    "narrative": "Merchant MID0195, onboarded 50 days ago as a travel agency, triggered two risk signals on day 69. The category mismatch signal reached 0.2335, exceeding the 0.1895 threshold, indicating transaction descriptors deviating from their baseline. Additionally, the peer-relative velocity score (velocity_peer_z) hit 2.5092, crossing the 2.5 threshold, which reflects an unusual transaction-volume growth ratio compared to our broader portfolio.\n\nSupporting data shows daily transactions rose from a baseline of 12.9 to 18.3 (a 1.42 volume shift multiple), while the median ticket size shifted slightly from INR 5,082.34 to INR 4,852.8. Top transaction descriptors include \"bus ticket blr-mys\" (31), \"cab airport transfer\" (29), and \"flight booking del-bom\" (24), spread across 175 distinct payer VPAs with a 0.0% refund rate.\n\nPlease note these alerts represent a behavioural signal requiring investigation, not a finding of wrongdoing. As a next step, we must open a formal review within 72 hours. Settlements will only be held if the reviewer confirms a genuine, unauthorized divergence from the merchant's declared business model."
   },
   {
     "case_id": "DW-MID0200-D139",
-    "generated_at_utc": "2026-08-23T18:59:46+00:00",
+    "generated_at_utc": "2026-08-24T08:01:56+00:00",
     "subject_entity": {
       "merchant_id": "MID0200",
       "declared_category": "it_and_software",
@@ -1955,6 +2102,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -1971,7 +2125,7 @@ export const casesData = [
   },
   {
     "case_id": "DW-MID0204-D160",
-    "generated_at_utc": "2026-08-23T19:04:49+00:00",
+    "generated_at_utc": "2026-08-24T08:04:40+00:00",
     "subject_entity": {
       "merchant_id": "MID0204",
       "declared_category": "ecommerce",
@@ -2046,6 +2200,13 @@ export const casesData = [
     "disposition_required_by": "72 hours from trigger_day (Mastercard SMMP investigation duty)",
     "provenance": {
       "descriptor_classifier_mode": "gemini",
+      "variant": "full",
+      "signals_used": [
+        "category_mismatch",
+        "ticket_psi",
+        "velocity_peer_z",
+        "network_overlap"
+      ],
       "calibration": "development split (60%); held-out untouched until final scoring",
       "data": "synthetic",
       "generator_seed": 20260823,
@@ -2056,8 +2217,8 @@ export const casesData = [
         "network_overlap": 0.2
       },
       "note": "Thresholds calibrated on the development split only. This case file was produced by an automated monitoring system on synthetic data; it is a behavioural signal requiring investigation, not a finding of wrongdoing.",
-      "narrative_mode": "gemini"
+      "narrative_mode": "fallback-template"
     },
-    "narrative": "Merchant MID0204, an e-commerce merchant onboarded 140 days ago, triggered two risk signals on day 160. First, the category mismatch rate reached 0.4686 (threshold: 0.1895), first crossed on day 150. Second, the ticket-size Population Stability Index (PSI) hit 0.253"
+    "narrative": "Merchant MID0204 (declared category: ecommerce) crossed the corroboration threshold on observation day 160, 140 days after onboarding. 2 independent signal families fired inside the review window.\n\nEvidence: category_mismatch = 0.199 against a threshold of 0.190 (first crossed day 150); ticket_psi = 0.253 against a threshold of 0.250 (first crossed day 160).\n\nThis is a behavioural divergence between the merchant's declared profile and its observed transaction activity. It is a signal requiring investigation, not a finding of wrongdoing. Recommended action: investigate - open review within 72 hours; hold settlement pending reviewer confirmation only if divergence is confirmed. A reviewer should confirm whether a legitimate business change explains the divergence before any settlement action is taken."
   }
 ];
