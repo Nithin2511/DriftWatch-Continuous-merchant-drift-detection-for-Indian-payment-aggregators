@@ -267,7 +267,7 @@ driftwatch/            the pipeline package
   evaluate.py          dev/held-out split, lead-time scoring   <- only reader of ground truth
   llm.py               Gemini layer, with labelled deterministic fallbacks
   demo.py              the CLI demo view
-tests/                 20 invariant tests (see below)
+tests/                 39 tests: invariants + docs consistency (see below)
 docs/                  architecture, data plan, evaluation, panel Q&A
 frontend/              React dashboard; a presentation layer over out/
 run_all.py             one-command pipeline
@@ -308,56 +308,9 @@ job and the split discipline's. These check only that the repo tells one story.
 
 ![DriftWatch architecture](docs/architecture.svg)
 
-<details>
-<summary>Diagram source (Mermaid)</summary>
-
-Rendered to `docs/architecture.svg` so it displays everywhere, including in viewers that
-do not execute Mermaid. Source of truth is `docs/architecture.mmd`:
-
-```mermaid
-flowchart LR
-  subgraph GEN [generate.py]
-    TXN[(transactions.parquet<br/>1.03M UPI txns)]
-    MER[(merchants.csv<br/>declared profiles)]
-    GT[(ground_truth.csv<br/>T0, drift_type, T_lag)]
-  end
-
-  subgraph LLMS [llm.py - Gemini]
-    CLS[classify_descriptors<br/>63 descriptors, 1 call]
-    NAR[write_narrative]
-  end
-
-  subgraph SIG [signals.py - walk-forward]
-    S1[category_mismatch<br/>content]
-    S2[ticket_psi<br/>distribution]
-    S3[velocity_peer_z<br/>velocity]
-    S4[network_overlap<br/>network]
-  end
-
-  TRG{trigger.py<br/>Branch A: 2+ families in 14d<br/>Branch B: 1 family, 2.5x, 5d}
-  CASE[casefile.py<br/>audit case file]
-  EVAL[evaluate.py<br/>lead-time scoring]
-
-  TXN --> CLS
-  CLS --> S1
-  MER --> S1
-  TXN --> S2
-  TXN --> S3
-  TXN --> S4
-  S1 --> TRG
-  S2 --> TRG
-  S3 --> TRG
-  S4 --> TRG
-  TRG --> CASE
-  NAR --> CASE
-  TRG --> EVAL
-  GT -. read ONLY here .-> EVAL
-
-  classDef truth fill:#3b1219,stroke:#b91c1c,color:#fecaca
-  class GT truth
-```
-
-</details>
+Source of truth for the diagram is [`docs/architecture.mmd`](docs/architecture.mmd);
+`docs/architecture.svg` is rendered from it and committed so it displays everywhere,
+including in viewers that do not execute Mermaid.
 
 The dashed edge is the whole evaluation argument: `ground_truth.csv` is written by the
 generator and read by `evaluate.py` alone. No signal, no trigger, and no case file can
@@ -378,11 +331,13 @@ explicit corroboration rule a reviewer can read and an auditor can replay.
 **The LLM synthesises, never judges.** Gemini classifies descriptors (a text task) and
 writes the case narrative (a language task). It is never asked "is this merchant
 fraudulent." The fire/no-fire decision is quantitative. That split is the difference
-between a system and an LLM wrapper. The classifier is called once per *unique
-descriptor set, not per transaction: all **63 unique descriptors across 1.03M
-transactions go out in a single request**. Narratives are batched the same way — 23 case
-files in 3 requests. A full run costs **4 API calls**, not 24, which is what makes it
-reproducible on a free tier capped at 20 requests/day.
+between a system and an LLM wrapper.
+
+Both calls are sub-linear in the thing they describe. Classification runs once per
+*vocabulary*, not per transaction: all **63 unique descriptors across 1.03M transactions go
+out in a single request**. Narratives are batched the same way — **23 case files in 3
+requests**. A full run costs **4 API calls**, which is what keeps it reproducible on a free
+tier capped at 20 requests per day.
 
 ---
 
