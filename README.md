@@ -5,7 +5,7 @@
 [![CI](https://github.com/Nithin2511/DriftWatch-Continuous-merchant-drift-detection-for-Indian-payment-aggregators/actions/workflows/ci.yml/badge.svg)](https://github.com/Nithin2511/DriftWatch-Continuous-merchant-drift-detection-for-Indian-payment-aggregators/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/invariant%20tests-20-brightgreen)
+![Tests](https://img.shields.io/badge/tests-39-brightgreen)
 
 > Razorpay AI Buildathon — Track 02 (AI Risk Manager)
 
@@ -230,7 +230,7 @@ To run the whole thing yourself:
 ```bash
 # 1. Pipeline & CLI Demo
 pip install -r requirements.txt   # pandas, numpy, pyarrow
-python run_all.py                # full pipeline (~3 min compute + paced LLM calls)
+python run_all.py                # ~2.2 min compute + 4 API calls
 python -m driftwatch.demo        # the CLI demo view
 python run_all.py --ablate-content   # no-content ablation -> out-ablation/
 
@@ -276,8 +276,10 @@ export_frontend_data.py  out/ -> frontend data modules, refuses on inconsistency
 
 ### What the tests actually test
 
-They do not test that DriftWatch scores well. They test the properties that make the
-score *believable* — the ones a reviewer would try to break:
+39 tests in two files. Neither checks that DriftWatch *scores well*.
+
+**`test_invariants.py` (20)** — the properties that make the score believable, the ones a
+reviewer would try to break:
 
 - `ground_truth.csv` is unreachable from every component except `evaluate.py` (static scan)
 - a portfolio-wide uniform surge produces **zero** peer-relative anomaly for everyone
@@ -285,6 +287,20 @@ score *believable* — the ones a reviewer would try to break:
 - PSI and z thresholds stay canonical constants, never portfolio quantiles
 - the LLM is never asked for a verdict, and the API key never reaches stdout
 - emitted case files agree with the evaluation that scored them
+
+**`test_docs_consistency.py` (19)** — every number quoted in this README and in
+`docs/EVALUATION.md` is parsed back out of the prose and asserted against
+`out/evaluation.json`: catch counts and rates, median lead and IQR, false positives,
+the `lead > 7 days` row, per-drift-type rows, the development split, and the narrative
+provenance count. A mismatch fails with the file, the claimed value and the computed value.
+
+The reason is specific. Every numeric inconsistency found in this project was found by
+manual audit, and manual audits are correct on the day they run and stale after the next
+edit. These tests make that class of error impossible rather than merely absent.
+
+They deliberately do **not** check that the numbers are right — a miscalibrated detector
+reporting itself consistently everywhere would pass. Correctness is `test_invariants.py`'s
+job and the split discipline's. These check only that the repo tells one story.
 
 ---
 
@@ -307,7 +323,7 @@ flowchart LR
   end
 
   subgraph LLMS [llm.py - Gemini]
-    CLS[classify_descriptors<br/>O of vocabulary: 63 calls]
+    CLS[classify_descriptors<br/>63 descriptors, 1 call]
     NAR[write_narrative]
   end
 
@@ -363,7 +379,10 @@ explicit corroboration rule a reviewer can read and an auditor can replay.
 writes the case narrative (a language task). It is never asked "is this merchant
 fraudulent." The fire/no-fire decision is quantitative. That split is the difference
 between a system and an LLM wrapper. The classifier is called once per *unique
-descriptor* — 63 calls for 1.03M transactions — so it is O(vocabulary), not O(volume).
+descriptor set, not per transaction: all **63 unique descriptors across 1.03M
+transactions go out in a single request**. Narratives are batched the same way — 23 case
+files in 3 requests. A full run costs **4 API calls**, not 24, which is what makes it
+reproducible on a free tier capped at 20 requests/day.
 
 ---
 

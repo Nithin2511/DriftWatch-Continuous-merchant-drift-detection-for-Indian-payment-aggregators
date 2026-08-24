@@ -57,8 +57,10 @@ learned combiner would score better and be indefensible in an audit.
 narratives (a language task). It is never asked whether a merchant is fraudulent. The
 fire/no-fire decision is entirely quantitative. A test enforces this.
 
-**LLM calls are O(vocabulary), not O(volume).** 63 unique descriptors across 1.03M
-transactions. Never call per transaction.
+**LLM calls are sub-linear by design.** Classification is O(vocabulary): all 63 unique
+descriptors across 1.03M transactions go out in **one** request. Narratives are O(batches):
+23 case files in **3** requests. A full run is **4 API calls**, never one per transaction
+or one per case. This is what makes it complete under the 20-requests/day free-tier cap.
 
 **The output is a case file, not a score.** SMMP requires showing when the trigger fired,
 what was reviewed, and the basis for the decision.
@@ -144,14 +146,17 @@ fix and before a quota reset. A fresh `python run_all.py` yields 23/23.
 
 | Stage | Time |
 |---|---|
-| `generate()` | 57.5 s |
-| load transactions | 1 s |
-| `signals.compute()` | 20 s |
-| calibration (72 grid points) + scoring | 82 s |
-| 23 narrative calls | rate-limit bound |
+| `generate()` — 220 merchants, 1.03M transactions | 57.5 s |
+| load transactions | 4.1 s |
+| `classify_descriptors()` — 1 API call, cached thereafter | 0.7 s |
+| `signals.compute()` — 23,643 merchant-days | 14.5 s |
+| calibration (72 grid points) + held-out scoring | 56.2 s |
+| **compute total** | **~2.2 min** (75.6 s with `--skip-generate`) |
+| case narratives | 3 API calls, network-bound |
 
-The calibration grid is **not** the bottleneck — a common wrong assumption. One grid point
-is 1.32 s. The LLM stage dominates wall-clock.
+The calibration grid is **not** the bottleneck — a common wrong assumption, and one worth
+correcting before someone "optimises" it. One grid point is 1.32 s. Since narratives were
+batched, the LLM stage is 4 requests and no longer dominates either.
 
 ---
 

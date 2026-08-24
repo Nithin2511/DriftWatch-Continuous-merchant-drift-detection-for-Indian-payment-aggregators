@@ -26,7 +26,7 @@ export default function SignalEngineTab() {
       threshold: `${(thr.category_mismatch * 100).toFixed(1)}%`,
       thresholdType: 'Portfolio Quantile (p91)',
       description: 'Share of recent 14-day transactions whose free-text descriptor implies a category different from the merchant\'s declared KYC category, in excess of own baseline.',
-      keyStrength: 'O(vocabulary) Gemini / fallback classification over 63 unique descriptors. Differenced against merchant\'s own 30-day baseline to accommodate broad catalogues.',
+      keyStrength: 'Gemini classifies all 63 unique descriptors in one call (O(vocabulary), not per-transaction), with a labelled deterministic fallback. Differenced against merchant\'s own 30-day baseline to accommodate broad catalogues.',
       failureMode: 'Legitimate category expansion/pivots produce false positives (e.g. restaurant launching grocery line); marked as legitimate confounders.',
     },
     {

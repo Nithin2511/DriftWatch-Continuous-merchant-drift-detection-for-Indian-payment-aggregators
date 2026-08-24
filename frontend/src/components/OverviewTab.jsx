@@ -257,7 +257,7 @@ export default function OverviewTab({ setActiveTab, setSelectedCaseId }) {
           <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/60">
             <strong className="text-blue-300 font-semibold block mb-1">3. The LLM Synthesises, Never Judges</strong>
             <p className="text-slate-300 leading-relaxed">
-              Gemini classifies text descriptors (O(vocabulary), 63 calls) and writes case prose. It is NEVER asked "is this merchant fraudulent". Fire decision is 100% quantitative.
+              Gemini classifies all 63 unique descriptors in a single call and writes case narratives 8 at a time — 4 API calls for the whole run. It is NEVER asked "is this merchant fraudulent". Fire decision is 100% quantitative.
             </p>
           </div>
           <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/60">

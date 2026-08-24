@@ -6,8 +6,8 @@ flowchart LR
   end
 
   subgraph LLMS [llm.py - Gemini]
-    CLS[classify_descriptors<br/>O of vocabulary: 63 calls]
-    NAR[write_narrative]
+    CLS[classify_descriptors<br/>63 descriptors, 1 call]
+    NAR[write_narratives<br/>23 cases, 3 calls]
   end
 
   subgraph SIG [signals.py - walk-forward]

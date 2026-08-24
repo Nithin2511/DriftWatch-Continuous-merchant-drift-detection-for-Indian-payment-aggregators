@@ -249,12 +249,26 @@ once. No threshold, rule, or objective was changed to flatter the ablation.
 
 ### Reading it
 
-**The content family is load-bearing for exactly one threat model.** `prohibited_category`
-goes from 4/5 to 0/5. That is the expected result and it is mechanical: a merchant that
-starts selling a prohibited product while keeping its ticket sizes, growth rate and payer
-population stable is, by construction, invisible to amount/timing/counterparty signals. The
-separability check predicted this before any detector existed — that class has a median
-volume ratio of 1.12, inside the non-drifter range.
+**A prediction registered in advance, confirmed afterwards.** This is the part worth more
+than any single metric in this document, so it is stated plainly:
+
+> Before a single detector existed, the separability check in
+> [DATA_PLAN.md](DATA_PLAN.md#the-separability-check-run-before-any-detector-existed)
+> recorded that `prohibited_category` drift has a **median 14-day volume ratio of 1.12**,
+> sitting *inside* the non-drifter range (p90 = 1.21). The written conclusion was that
+> volume alone cannot separate that class, and that catching it would require a signal
+> reading *what is being sold* rather than *how much*.
+>
+> The ablation is the test of that claim. Remove the content family and
+> `prohibited_category` goes **4/5 → 0/5**, while the two classes the prediction did not
+> implicate barely move. The prediction was specific, it was written down before the
+> evidence existed, and it was falsifiable — had `prohibited_category` survived on volume
+> and timing alone, the separability analysis would have been wrong.
+
+The mechanism is unremarkable once stated: a merchant that starts selling a prohibited
+product while keeping its ticket sizes, growth rate and payer population stable is, by
+construction, invisible to amount/timing/counterparty signals. **The content family is
+load-bearing for exactly one threat model, and the analysis said which one in advance.**
 
 **The other two threat models are essentially unaffected.** `third_party_layering` loses one
 case of seven; `bust_out` loses none. Layering is caught by payer-VPA overlap and ticket
@@ -334,13 +348,19 @@ Outputs per run: `evaluation.json`, `held_out_triggers.json`, `cases/*.json`.
 
 | Stage | Time |
 |---|---|
-| `generate()` | 57.5 s |
-| load transactions | 1 s |
-| `signals.compute()` | 20 s |
-| calibration (72 grid points) + held-out scoring | 82 s |
-| case narratives | 23 LLM calls, rate-limit bound |
+| `generate()` — 220 merchants, 1.03M transactions | 57.5 s |
+| load transactions | 4.1 s |
+| `classify_descriptors()` — 1 API call, cached thereafter | 0.7 s |
+| `signals.compute()` — 23,643 merchant-days | 14.5 s |
+| calibration (72 grid points) + held-out scoring | 56.2 s |
+| **compute total** | **~2.2 min** (75.6 s with `--skip-generate`) |
+| case narratives | 3 API calls, network-bound |
 
-Compute is roughly 2.7 minutes end to end. The calibration grid is *not* the bottleneck —
-one grid point costs 1.32 s. Wall-clock is dominated by the narrative calls, which are
-paced client-side to stay inside free-tier rate limits. Running without `GEMINI_API_KEY`
-skips them entirely (labelled fallback) and completes in under three minutes.
+Compute is roughly **2.2 minutes** end to end. Timings vary by maybe 30% with machine load;
+these were taken on an otherwise idle laptop.
+
+The calibration grid is **not** the bottleneck, which is the intuition most people bring to
+it: one grid point costs 1.32 s and the whole 72-point search is under a minute. Nor are the
+API calls, now that both LLM paths are batched — a full run makes **4 requests** total.
+Running without `GEMINI_API_KEY` skips them entirely (labelled fallback) and changes the
+wall-clock very little.
